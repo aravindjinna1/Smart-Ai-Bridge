@@ -1,0 +1,8 @@
+{
+  "name": "AI Bridge",
+  "description": "Multi-provider AI chat bridge for Gemini, ChatGPT, and Claude with Direct API and desktop Browser Bridge modes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

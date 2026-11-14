@@ -1,0 +1,4314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Bridge</title>
+  <meta name="description" content="Multi-provider AI chat bridge with Interview Mode, system speaker transcription, local screen OCR, and cloud-synced chat history." />
+  <meta property="og:title" content="AI Bridge" />
+  <meta property="og:description" content="Multi-provider AI chat bridge with Interview Mode, system speaker transcription, local screen OCR, and cloud-synced chat history." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-canvas: #090e1a;
+      --bg-surface: #0f1628;
+      --bg-elevated: #141e35;
+      --bg-code: #070b14;
+      --border-hairline: #1e2c48;
+      --border-focus: #3b82f6;
+      --text-primary: #eef2fb;
+      --text-secondary: #9fb0cc;
+      --text-muted: #697b9c;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger: #dc2626;
+      --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14.5px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .view-hidden { display: none !important; }
+
+    /* ================== LANDING PAGE ================== */
+    #landingView {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(900px 420px at 50% -80px, rgba(37, 99, 235, 0.16), transparent 70%),
+        var(--bg-canvas);
+    }
+
+    .landing-header {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .brand-wordmark {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .landing-nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .landing-nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: color 0.15s ease;
+    }
+
+    .landing-nav a:hover {
+      color: #ffffff;
+      text-decoration: underline;
+      text-underline-offset: 6px;
+    }
+
+    .landing-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      padding: 9px 18px;
+      border-radius: 9px;
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg-elevated);
+      border-color: #354c7a;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #ffffff;
+      padding: 9px 18px;
+      border-radius: 9px;
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .landing-main {
+      flex: 1;
+      max-width: 1120px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 64px 24px 72px;
+    }
+
+    .hero-block {
+      max-width: 760px;
+      margin: 0 auto 64px;
+      text-align: center;
+    }
+
+    .hero-kicker {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+      letter-spacing: 0.01em;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.25rem, 4.4vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+      color: #f8fafc;
+      margin: 0 0 18px;
+      text-wrap: balance;
+    }
+
+    .hero-subtitle {
+      font-size: 16.5px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      margin: 0 auto 30px;
+      max-width: 630px;
+    }
+
+    .hero-cta-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-get-started {
+      background: var(--accent);
+      color: #ffffff;
+      border: 0;
+      padding: 14px 34px;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 8px 28px rgba(37, 99, 235, 0.35);
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .btn-get-started:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .section-divider {
+      border: 0;
+      border-top: 1px solid var(--border-hairline);
+      margin: 56px 0;
+    }
+
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+      margin: 0 0 10px;
+      text-wrap: balance;
+    }
+
+    .section-lead {
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin: 0 0 28px;
+      max-width: 640px;
+    }
+
+    .capabilities-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .cap-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .cap-card.span-2 {
+      grid-column: span 2;
+    }
+
+    .cap-index {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cap-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 0 0 8px;
+    }
+
+    .cap-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .providers-directory {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .provider-spec {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .provider-spec h4 {
+      margin: 0 0 4px;
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      color: #f8fafc;
+    }
+
+    .provider-spec p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .landing-footer {
+      border-top: 1px solid var(--border-hairline);
+      padding: 24px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .footer-links button {
+      background: transparent;
+      border: 0;
+      color: var(--text-secondary);
+      font: inherit;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .footer-links button:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .capabilities-grid { grid-template-columns: 1fr; }
+      .cap-card.span-2 { grid-column: span 1; }
+      .providers-directory { grid-template-columns: repeat(2, 1fr); }
+      .landing-nav { display: none; }
+    }
+
+    /* ================== AUTH VIEW ================== */
+    #authView {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(700px 360px at 50% -60px, rgba(37, 99, 235, 0.14), transparent 70%),
+        var(--bg-canvas);
+    }
+
+    .auth-shell {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 16px;
+      padding: 32px;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 4px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-hairline);
+      border-radius: 10px;
+      margin-bottom: 24px;
+    }
+
+    .auth-tab {
+      background: transparent;
+      border: 0;
+      color: var(--text-secondary);
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 9px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .auth-tab.active {
+      background: var(--bg-elevated);
+      color: #ffffff;
+    }
+
+    .auth-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 0 0 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin: 0 0 22px;
+    }
+
+    .auth-field {
+      margin-bottom: 16px;
+    }
+
+    .auth-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .password-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .auth-field input {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px;
+      border-radius: 9px;
+      border: 1px solid #263656;
+      background: var(--bg-canvas);
+      color: #ffffff;
+      font: inherit;
+      font-size: 14px;
+      transition: border-color 0.15s ease;
+    }
+
+    .password-wrap input {
+      padding-right: 54px;
+    }
+
+    .auth-field input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .toggle-pw-btn {
+      position: absolute;
+      right: 10px;
+      background: transparent;
+      border: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+
+    .auth-row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .remember-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember-label input {
+      accent-color: var(--accent);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .text-link-btn {
+      background: transparent;
+      border: 0;
+      color: #60a5fa;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .text-link-btn:hover {
+      text-decoration: underline;
+    }
+
+    .auth-submit-btn {
+      width: 100%;
+      height: 44px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #ffffff;
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .auth-submit-btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .auth-submit-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .auth-alert {
+      margin-top: 14px;
+      padding: 11px 13px;
+      border-radius: 9px;
+      font-size: 13px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .auth-alert.active { display: block; }
+    .auth-alert.error {
+      background: rgba(220, 38, 38, 0.12);
+      border: 1px solid rgba(220, 38, 38, 0.45);
+      color: #fca5a5;
+    }
+    .auth-alert.success {
+      background: rgba(22, 163, 74, 0.14);
+      border: 1px solid rgba(22, 163, 74, 0.45);
+      color: #86efac;
+    }
+
+    .auth-footer-switch {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ================== WORKSPACE (CHATGPT SIDEBAR + CHAT) ================== */
+    #workspaceView {
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      background: var(--bg-canvas);
+    }
+
+    .sidebar {
+      width: 264px;
+      flex-shrink: 0;
+      background: #0b1121;
+      border-right: 1px solid var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: width 0.2s ease, opacity 0.2s ease;
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      border-right-width: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-top {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .new-chat-btn {
+      flex: 1;
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 9px;
+      border: 1px solid #263656;
+      background: var(--bg-elevated);
+      color: #f8fafc;
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .new-chat-btn:hover {
+      background: #1b2846;
+      border-color: #3b82f6;
+    }
+
+    .sidebar-icon-btn {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: 9px;
+      border: 1px solid var(--border-hairline);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .sidebar-icon-btn:hover {
+      background: var(--bg-elevated);
+      color: #ffffff;
+    }
+
+    .sidebar-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 8px;
+    }
+
+    .sidebar-history::-webkit-scrollbar { width: 5px; }
+    .sidebar-history::-webkit-scrollbar-thumb { background: #233354; border-radius: 4px; }
+
+    .history-group-label {
+      padding: 10px 10px 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .history-empty {
+      padding: 20px 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 13px;
+      transition: background 0.12s ease, color 0.12s ease;
+      position: relative;
+    }
+
+    .history-item:hover {
+      background: #131c33;
+      color: #ffffff;
+    }
+
+    .history-item.active {
+      background: #192645;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .history-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-actions {
+      display: flex;
+      opacity: 0.35;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .history-item:hover .history-actions,
+    .history-item:focus-within .history-actions,
+    .history-item.active .history-actions {
+      opacity: 1;
+    }
+
+    .history-act-btn {
+      background: transparent;
+      border: 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 3px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .history-act-btn:hover {
+      background: #233354;
+      color: #ffffff;
+    }
+
+    .history-act-btn.confirm-del {
+      color: #fca5a5;
+      background: rgba(220, 38, 38, 0.25);
+      font-weight: 700;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #090e1c;
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #ffffff;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-email {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--border-hairline);
+      color: var(--text-secondary);
+      border-radius: 7px;
+      padding: 6px 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .logout-btn:hover {
+      background: #1b2846;
+      color: #ffffff;
+      border-color: #3b82f6;
+    }
+
+    .workspace-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .ws-header {
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: #0d1428;
+    }
+
+    .ws-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .ws-header-left h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      color: #f8fafc;
+      white-space: nowrap;
+    }
+
+    .ws-mode-text {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mode-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #263656;
+      background: #111a2f;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .mode-toggle input {
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .settings-btn {
+      background: transparent;
+      border: 1px solid #263656;
+      color: #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .settings-btn:hover {
+      background: #1a2642;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 12px 20px;
+      overflow: hidden;
+    }
+
+    /* Right Slide-Over Menu Bar */
+    .right-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 70;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .right-menu-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .right-menu-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 310px;
+      max-width: 90vw;
+      background: #0b1121;
+      border-left: 1px solid var(--border-hairline);
+      z-index: 75;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      visibility: hidden;
+      pointer-events: none;
+      transition: transform 0.22s ease, visibility 0.22s ease;
+      box-shadow: -16px 0 36px rgba(0, 0, 0, 0.45);
+    }
+
+    .right-menu-drawer.open {
+      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .right-menu-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .right-menu-header h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .right-menu-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .right-menu-body::-webkit-scrollbar { width: 5px; }
+    .right-menu-body::-webkit-scrollbar-thumb { background: #233354; border-radius: 4px; }
+
+    .right-menu-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .right-menu-section:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .right-menu-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .current-model-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      background: #10182d;
+      border: 1px solid #243454;
+    }
+
+    .current-model-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .current-model-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: #93c5fd;
+    }
+
+    .menu-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      border: 1px solid #243454;
+      background: #10182d;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .menu-toggle-row:hover {
+      background: #14203b;
+      border-color: #3b82f6;
+    }
+
+    .menu-toggle-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .menu-toggle-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #eef2fb;
+    }
+
+    .menu-toggle-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .menu-toggle-row input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .providers.view-hidden {
+      display: none !important;
+    }
+
+    .provider-button {
+      padding: 9px 10px;
+      border: 1px solid #243454;
+      border-radius: 9px;
+      background: #10182d;
+      color: #cbd5e1;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .provider-button:hover {
+      background: #182542;
+      border-color: #3b82f6;
+    }
+
+    .provider-button.active {
+      background: var(--accent);
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .menu-action-btn {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 9px;
+      border: 1px solid #243454;
+      background: #10182d;
+      color: #eef2fb;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .menu-action-btn:hover {
+      background: #182542;
+      border-color: #3b82f6;
+    }
+
+    /* Direct API Keys Panel (inside Right Menu Bar) */
+    .direct-api-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #0d1529;
+      border: 1px solid #243454;
+      margin-top: 2px;
+    }
+
+    .direct-api-panel.view-hidden {
+      display: none !important;
+    }
+
+    .direct-api-warning {
+      padding: 10px 11px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.45;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #fde68a;
+    }
+
+    .direct-api-warning.view-hidden {
+      display: none !important;
+    }
+
+    .direct-api-note {
+      font-size: 11.5px;
+      line-height: 1.4;
+      color: var(--text-secondary);
+    }
+
+    .api-key-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .api-key-row-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .api-key-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .api-key-badge.saved {
+      color: #4ade80;
+    }
+
+    .api-key-input {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 7px;
+      border: 1px solid #263656;
+      background: #10192f;
+      color: #f8fafc;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .api-key-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .save-keys-inline-btn {
+      width: 100%;
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #ffffff;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .save-keys-inline-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .save-keys-feedback {
+      font-size: 11.5px;
+      color: #86efac;
+      min-height: 16px;
+    }
+
+    .modal-keys-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 560px) {
+      .modal-keys-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 8px 4px;
+      scroll-behavior: smooth;
+    }
+
+    #chat::-webkit-scrollbar { width: 6px; }
+    #chat::-webkit-scrollbar-thumb { background: #263656; border-radius: 4px; }
+
+    .bubble {
+      padding: 16px 20px;
+      border-radius: 14px;
+      line-height: 1.68;
+      word-break: break-word;
+      font-size: 14.5px;
+    }
+
+    .bubble .content > *:first-child { margin-top: 0; }
+    .bubble .content > *:last-child { margin-bottom: 0; }
+
+    .bubble h1 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 18px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #243554;
+      line-height: 1.3;
+    }
+
+    .bubble h2 {
+      font-family: var(--font-display);
+      font-size: 17.5px;
+      font-weight: 700;
+      color: #dbeafe;
+      margin: 18px 0 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #1e2e4f;
+      line-height: 1.35;
+    }
+
+    .bubble h3 {
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #93c5fd;
+      margin: 14px 0 6px;
+      line-height: 1.35;
+    }
+
+    .bubble h4 {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #bfdbfe;
+      margin: 12px 0 4px;
+    }
+
+    .bubble p {
+      margin: 0 0 10px;
+      color: #e2e8f0;
+    }
+
+    .bubble ul, .bubble ol {
+      margin: 6px 0 12px;
+      padding-left: 22px;
+    }
+
+    .bubble li {
+      margin: 5px 0;
+      color: #e2e8f0;
+      line-height: 1.65;
+    }
+
+    .bubble li::marker {
+      color: #60a5fa;
+      font-weight: 700;
+    }
+
+    .bubble strong {
+      color: #f8fafc;
+      font-weight: 700;
+    }
+
+    .bubble em { color: #cbd5e1; }
+
+    .bubble a {
+      color: #60a5fa;
+      text-decoration: underline;
+    }
+
+    .bubble blockquote {
+      margin: 10px 0;
+      padding: 10px 14px;
+      border: 1px solid #243554;
+      background: #0d1629;
+      border-radius: 8px;
+      color: #cbd5e1;
+    }
+
+    .bubble hr {
+      border: 0;
+      border-top: 1px solid #243554;
+      margin: 14px 0;
+    }
+
+    .bubble table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 13.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bubble th, .bubble td {
+      border: 1px solid #243554;
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    .bubble th {
+      background: #16223d;
+      color: #dbeafe;
+      font-weight: 700;
+    }
+
+    .bubble td { background: #0d1629; }
+
+    .bubble code {
+      background: #17233d;
+      color: #93c5fd;
+      padding: 2px 6px;
+      border-radius: 5px;
+      border: 1px solid #26395f;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+
+    .code-block-card {
+      margin: 12px 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #253659;
+      background: var(--bg-code);
+    }
+
+    .code-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 12px;
+      background: #111a2e;
+      border-bottom: 1px solid #1e2d4a;
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+
+    .code-lang {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #93c5fd;
+      text-transform: lowercase;
+    }
+
+    .copy-code-btn {
+      background: #1a2744;
+      border: 1px solid #2e426b;
+      color: #cbd5e1;
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-code-btn:hover {
+      background: var(--accent);
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .bubble pre {
+      background: var(--bg-code);
+      margin: 0;
+      padding: 13px 15px;
+      border-radius: 0;
+      overflow-x: auto;
+      border: 0;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.55;
+      color: #e2e8f0;
+    }
+
+    .bubble pre code {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    .tok-kw { color: #c084fc; font-weight: 500; }
+    .tok-str { color: #86efac; }
+    .tok-num { color: #fb923c; }
+    .tok-cmt { color: #64748b; font-style: italic; }
+    .tok-fn { color: #60a5fa; }
+    .tok-type { color: #fde047; }
+    .tok-prop { color: #38bdf8; }
+    .tok-op { color: #f472b6; }
+
+    .user {
+      background: #1e3a8a;
+      color: #eff6ff;
+      align-self: flex-end;
+      max-width: 82%;
+      border-bottom-right-radius: 4px;
+    }
+
+    .ai {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      align-self: stretch;
+      border-bottom-left-radius: 4px;
+    }
+
+    .ai-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: #93c5fd;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 7px;
+      height: 15px;
+      background: #60a5fa;
+      vertical-align: middle;
+      margin-left: 3px;
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .capture-fallback-bar {
+      display: none;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 12px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid #263554;
+      background: #0f172a;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+    .capture-fallback-bar.active { display: flex; }
+    .fb-group { display: none; align-items: center; flex-wrap: wrap; gap: 6px; flex: 1; }
+    .fb-group.active { display: flex; }
+    .fb-btn {
+      padding: 5px 10px;
+      border-radius: 7px;
+      border: 1px solid #334155;
+      background: #162036;
+      color: #93c5fd;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .fb-btn:hover:not(:disabled) { background: #1e2d4d; border-color: #3b82f6; }
+    .fb-url {
+      flex: 1;
+      min-width: 150px;
+      padding: 5px 9px;
+      border-radius: 7px;
+      border: 1px solid #334155;
+      background: #0b1020;
+      color: #f8fafc;
+      font: inherit;
+      font-size: 12px;
+    }
+    .fb-close {
+      background: transparent;
+      border: 0;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      margin-left: auto;
+    }
+
+    form#form {
+      display: flex;
+      gap: 10px;
+      padding-top: 10px;
+      align-items: flex-end;
+    }
+
+    form#form textarea {
+      flex: 1;
+      height: 50px;
+      min-height: 50px;
+      max-height: 220px;
+      resize: vertical;
+      overflow-y: auto;
+      padding: 13px 14px;
+      border-radius: 11px;
+      border: 1px solid #263554;
+      background: #10182c;
+      color: white;
+      font: inherit;
+      line-height: 1.4;
+      transition: border-color 0.2s;
+    }
+
+    form#form textarea:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .read-screen-btn, .listen-btn {
+      height: 50px;
+      padding: 0 14px;
+      border: 1px solid #263656;
+      border-radius: 11px;
+      background: #13203b;
+      color: #cbd5e1;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .read-screen-btn:hover:not(:disabled),
+    .listen-btn:hover:not(:disabled) {
+      background: #1a2c4f;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .listen-btn.listening {
+      background: #450a0a;
+      border-color: #ef4444;
+      color: #fecaca;
+    }
+
+    .read-screen-btn:disabled, .listen-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .ocr-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #93c5fd44;
+      border-top-color: #93c5fd;
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .listen-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #ef4444;
+      display: inline-block;
+      animation: pulse-dot 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.7); opacity: 0.45; }
+    }
+
+    button#send {
+      height: 50px;
+      padding: 0 22px;
+      border: 0;
+      border-radius: 11px;
+      background: var(--accent);
+      color: #ffffff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+
+    button#send:hover:not(:disabled) { background: var(--accent-hover); }
+    button#send.stop-btn { background: var(--danger); }
+    button#send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status {
+      min-height: 20px;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Settings Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      width: 92%;
+      max-width: 560px;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .modal h2 { margin: 0 0 8px 0; font-size: 17px; color: #f1f5f9; font-family: var(--font-display); }
+    .modal p { font-size: 12.5px; color: #94a3b8; line-height: 1.5; margin-top: 0; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f8fafc;
+      font-family: inherit;
+      font-size: 12.5px;
+    }
+    .form-group textarea { min-height: 135px; line-height: 1.45; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #6366f1; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+    .modal-actions button { padding: 9px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+    .btn-cancel { background: transparent; border: 1px solid #334155; color: #94a3b8; }
+    .btn-save { background: var(--accent); border: 0; color: white; }
+
+    @media (max-width: 760px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 60;
+      }
+      .ws-mode-text { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= VIEW 1: LANDING / ABOUT PAGE ================= -->
+  <section id="landingView">
+    <header class="landing-header">
+      <a class="brand-wordmark" id="landingLogo">AI Bridge</a>
+      <nav class="landing-nav" aria-label="Primary">
+        <a href="#features">Capabilities</a>
+        <a href="#interview-format">Interview Format</a>
+        <a href="#providers">Providers</a>
+        <a href="#security">Accounts &amp; History</a>
+      </nav>
+      <div class="landing-actions">
+        <button type="button" class="btn-ghost" id="landingLoginBtn">Login</button>
+        <button type="button" class="btn-primary" id="landingRegisterBtn">Register</button>
+      </div>
+    </header>
+
+    <main class="landing-main">
+      <div class="hero-block">
+        <div class="hero-kicker">Multi-Model Assistant · System Speaker Transcription · Local Screen OCR</div>
+        <h1 class="hero-title">One Workspace for Every AI Model, Live Meetings, and Saved History</h1>
+        <p class="hero-subtitle">
+          AI Bridge connects Gemini, DeepAI, ChatGPT, DeepSeek, Perplexity, Duck.ai, and Claude in a single interface. Listen to system speaker questions, read screen slides via local OCR, format answers for interviews, and keep your private chat history synced to MongoDB.
+        </p>
+        <div class="hero-cta-row">
+          <button type="button" class="btn-get-started" id="getStartedBtn">Get Started</button>
+        </div>
+      </div>
+
+      <hr class="section-divider" />
+
+      <section id="features">
+        <h2 class="section-heading">Core Capabilities</h2>
+        <p class="section-lead">Built for real-time technical interviews, daily coding, and seamless multi-provider comparison.</p>
+        <div class="capabilities-grid">
+          <div class="cap-card span-2">
+            <div class="cap-index">01 · INTERVIEW MODE &amp; FORMATTED CODE</div>
+            <h3 class="cap-title">Structured Interview Answers with Syntax Highlighting</h3>
+            <p class="cap-desc">Every technical question can be formatted into five clear sections — Definition, Purpose, Working, Practical MERN Example, and Important Point — in natural spoken English with colorized code blocks and one-click copy.</p>
+          </div>
+          <div class="cap-card">
+            <div class="cap-index">02 · SYSTEM SPEAKER AUDIO</div>
+            <h3 class="cap-title">Listen to Meet Speaker Output</h3>
+            <p class="cap-desc">Captures only computer speaker or tab audio from the other person on a call (never your microphone) and pastes the transcribed question straight into the input box.</p>
+          </div>
+          <div class="cap-card">
+            <div class="cap-index">03 · LOCAL SCREEN OCR</div>
+            <h3 class="cap-title">Read Screen &amp; MCQ Solver</h3>
+            <p class="cap-desc">Extracts visible text, code snippets, and multiple-choice options locally in memory via Tesseract.js without sending raw screenshots to external servers.</p>
+          </div>
+          <div class="cap-card span-2" id="interview-format">
+            <div class="cap-index">04 · ISOLATED ACCOUNTS &amp; HISTORY</div>
+            <h3 class="cap-title">Private MongoDB Atlas Chat History</h3>
+            <p class="cap-desc">Register with your account to unlock a ChatGPT-style collapsible sidebar. Each user’s conversations are stored separately, automatically titled, and accessible whenever you sign back in.</p>
+          </div>
+        </div>
+      </section>
+
+      <hr class="section-divider" />
+
+      <section id="providers">
+        <h2 class="section-heading">Supported AI Assistants</h2>
+        <p class="section-lead">Switch models anytime in Browser Bridge mode or toggle Direct API Mode with your own keys.</p>
+        <div class="providers-directory">
+          <div class="provider-spec"><h4>Gemini</h4><p>Browser Bridge &amp; Direct API streaming</p></div>
+          <div class="provider-spec"><h4>DeepAI</h4><p>Fast web bridge without sign-in friction</p></div>
+          <div class="provider-spec"><h4>ChatGPT</h4><p>Browser Bridge &amp; OpenAI Direct API</p></div>
+          <div class="provider-spec"><h4>DeepSeek</h4><p>Code-focused web bridge integration</p></div>
+          <div class="provider-spec"><h4>Perplexity</h4><p>Web-grounded answers via Browser Bridge</p></div>
+          <div class="provider-spec"><h4>Duck.ai</h4><p>Privacy-focused multi-model web chat</p></div>
+          <div class="provider-spec"><h4>Claude</h4><p>Browser Bridge &amp; Anthropic Direct API</p></div>
+          <div class="provider-spec" id="security"><h4>Password Reset</h4><p>Email-verified reset flow in MongoDB</p></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="landing-footer">
+      <span>AI Bridge · Multi-Provider Chat &amp; Interview Workspace</span>
+      <div class="footer-links">
+        <button type="button" id="footerRegisterBtn">Register</button>
+        <button type="button" id="footerLoginBtn">Login</button>
+        <button type="button" id="footerForgotBtn">Forgot Password</button>
+        <button type="button" id="footerStartBtn">Get Started</button>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ================= VIEW 2: AUTH (LOGIN / REGISTER / FORGOT / RESET) ================= -->
+  <section id="authView" class="view-hidden">
+    <header class="landing-header">
+      <a class="brand-wordmark" id="authBackHomeLogo">AI Bridge</a>
+      <div class="landing-actions">
+        <button type="button" class="btn-ghost" id="authBackHomeBtn">Back to Overview</button>
+      </div>
+    </header>
+
+    <div class="auth-shell">
+      <div class="auth-card">
+        <div class="auth-tabs" id="authModeTabs">
+          <button type="button" class="auth-tab active" data-auth-tab="login" id="tabLoginBtn">Login</button>
+          <button type="button" class="auth-tab" data-auth-tab="register" id="tabRegisterBtn">Register</button>
+        </div>
+
+        <!-- LOGIN PANEL -->
+        <form id="loginForm">
+          <h2 class="auth-title">Welcome back</h2>
+          <p class="auth-subtitle">Sign in to access your AI Bridge chat box and saved conversation history.</p>
+
+          <div class="auth-field">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+
+          <div class="auth-field">
+            <label for="loginPassword">Password</label>
+            <div class="password-wrap">
+              <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Enter your password" required />
+              <button type="button" class="toggle-pw-btn" data-toggle-pw="loginPassword">Show</button>
+            </div>
+          </div>
+
+          <div class="auth-row-between">
+            <label class="remember-label">
+              <input type="checkbox" id="rememberMeCheckbox" />
+              <span>Remember password</span>
+            </label>
+            <button type="button" class="text-link-btn" id="gotoForgotBtn">Forgot password?</button>
+          </div>
+
+          <button type="submit" class="auth-submit-btn" id="loginSubmitBtn">Sign In</button>
+          <div class="auth-footer-switch">
+            Don’t have an account? <button type="button" class="text-link-btn" id="switchToRegisterBtn">Register here</button>
+          </div>
+        </form>
+
+        <!-- REGISTER PANEL -->
+        <form id="registerForm" class="view-hidden">
+          <h2 class="auth-title">Create your account</h2>
+          <p class="auth-subtitle">Register once to save your private chat history across sessions.</p>
+
+          <div class="auth-field">
+            <label for="regFullName">Full Name</label>
+            <input type="text" id="regFullName" autocomplete="name" placeholder="Aravind Jinna" required />
+          </div>
+
+          <div class="auth-field">
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+
+          <div class="auth-field">
+            <label for="regPassword">Password (more than 6 characters)</label>
+            <div class="password-wrap">
+              <input type="password" id="regPassword" autocomplete="new-password" placeholder="At least 7 characters" minlength="7" required />
+              <button type="button" class="toggle-pw-btn" data-toggle-pw="regPassword">Show</button>
+            </div>
+          </div>
+
+          <div class="auth-row-between">
+            <label class="remember-label">
+              <input type="checkbox" id="regRememberMeCheckbox" checked />
+              <span>Keep me signed in</span>
+            </label>
+          </div>
+
+          <button type="submit" class="auth-submit-btn" id="registerSubmitBtn">Create Account</button>
+          <div class="auth-footer-switch">
+            Already registered? <button type="button" class="text-link-btn" id="switchToLoginBtn">Sign in</button>
+          </div>
+        </form>
+
+        <!-- FORGOT PASSWORD PANEL -->
+        <form id="forgotForm" class="view-hidden">
+          <h2 class="auth-title">Forgot password</h2>
+          <p class="auth-subtitle">Enter the email registered in our database. We will send a password reset link if your email matches an account.</p>
+
+          <div class="auth-field">
+            <label for="forgotEmail">Registered Email</label>
+            <input type="email" id="forgotEmail" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+
+          <button type="submit" class="auth-submit-btn" id="forgotSubmitBtn">Send Reset Email</button>
+          <div class="auth-footer-switch">
+            Remembered it? <button type="button" class="text-link-btn" id="forgotBackLoginBtn">Back to Login</button>
+          </div>
+        </form>
+
+        <!-- RESET PASSWORD PANEL (OPENED VIA EMAIL RESET LINK) -->
+        <form id="resetForm" class="view-hidden">
+          <h2 class="auth-title">Set a new password</h2>
+          <p class="auth-subtitle" id="resetSubtitle">Create a new password with more than 6 characters.</p>
+
+          <div class="auth-field">
+            <label for="resetPasswordInput">New Password (more than 6 characters)</label>
+            <div class="password-wrap">
+              <input type="password" id="resetPasswordInput" autocomplete="new-password" placeholder="Minimum 7 characters" minlength="7" required />
+              <button type="button" class="toggle-pw-btn" data-toggle-pw="resetPasswordInput">Show</button>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="resetConfirmPasswordInput">Confirm Password</label>
+            <div class="password-wrap">
+              <input type="password" id="resetConfirmPasswordInput" autocomplete="new-password" placeholder="Re-enter new password" minlength="7" required />
+              <button type="button" class="toggle-pw-btn" data-toggle-pw="resetConfirmPasswordInput">Show</button>
+            </div>
+          </div>
+
+          <button type="submit" class="auth-submit-btn" id="resetSubmitBtn">Reset Password</button>
+          <div class="auth-footer-switch">
+            <button type="button" class="text-link-btn" id="resetBackLoginBtn">Back to Login</button>
+          </div>
+        </form>
+
+        <div id="authAlert" class="auth-alert" role="status"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VIEW 3: AUTHENTICATED CHAT WORKSPACE ================= -->
+  <section id="workspaceView" class="view-hidden">
+    <!-- ChatGPT-style Left History Sidebar -->
+    <aside class="sidebar" id="chatSidebar" aria-label="Chat history">
+      <div class="sidebar-top">
+        <button type="button" class="new-chat-btn" id="newChatBtn">
+          <span>＋</span>
+          <span>New chat</span>
+        </button>
+        <button type="button" class="sidebar-icon-btn" id="closeSidebarBtn" title="Close sidebar" aria-label="Close sidebar">
+          ◧
+        </button>
+      </div>
+
+      <div class="sidebar-history" id="chatHistoryList">
+        <div class="history-empty">No previous chats yet. Ask a question to start saving your history.</div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-avatar" id="userAvatarInitials">U</div>
+        <div class="user-meta">
+          <div class="user-name" id="sidebarUserName">User</div>
+          <div class="user-email" id="sidebarUserEmail">user@example.com</div>
+        </div>
+        <button type="button" class="logout-btn" id="logoutBtn">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <div class="workspace-main">
+      <header class="ws-header">
+        <div class="ws-header-left">
+          <button type="button" class="sidebar-icon-btn view-hidden" id="openSidebarBtn" title="Open chat history sidebar" aria-label="Open sidebar">
+            ☰
+          </button>
+          <h1>AI Bridge</h1>
+          <span class="ws-mode-text" id="activeModelStatus"><span id="activeModelLabel">DeepAI</span> · <span id="modeBadge">Browser Bridge</span></span>
+        </div>
+        <div class="header-actions">
+          <button class="settings-btn" id="rightMenuBtn" type="button" aria-expanded="false" aria-controls="rightMenuDrawer">
+            ⚙ Menu
+          </button>
+        </div>
+      </header>
+
+      <div class="container">
+        <div id="chat"></div>
+
+        <div id="captureFallbackBar" class="capture-fallback-bar" role="region" aria-label="Capture options">
+          <div id="screenFallbackGroup" class="fb-group">
+            <span style="color:#94a3b8;font-weight:600;">Read Screen:</span>
+            <button type="button" class="fb-btn" id="fbUploadImgBtn">Upload / Drop Image</button>
+            <button type="button" class="fb-btn" id="fbBrowserTabBtn">Read Open Browser Tab</button>
+            <input type="url" id="fbUrlInput" class="fb-url" placeholder="https://... (capture webpage)" />
+            <button type="button" class="fb-btn" id="fbReadUrlBtn">Read URL</button>
+            <span style="color:#64748b;">or Ctrl+V screenshot</span>
+          </div>
+          <div id="audioFallbackGroup" class="fb-group">
+            <span style="color:#94a3b8;font-weight:600;">System Speaker Audio:</span>
+            <a id="fbOpenTopWindowBtn" class="fb-btn" href="/" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">Open Top-Level Window (Live Meet / Speaker Audio) ↗</a>
+            <button type="button" class="fb-btn" id="fbUploadAudioBtn">Test Audio Clip</button>
+          </div>
+          <button type="button" class="fb-close" id="fbCloseBtn" title="Dismiss">✕</button>
+          <input type="file" id="ocrFileInput" accept="image/*" style="display:none" />
+          <input type="file" id="audioFileInput" accept="audio/*" style="display:none" />
+        </div>
+
+        <form id="form">
+          <textarea id="message" placeholder="Ask DeepAI something... (Press Enter to send)" rows="1" required></textarea>
+          <button id="listenBtn" type="button" class="listen-btn" title="Listen ONLY to system speaker / Meet opponent audio (no microphone) and transcribe into input">
+            <span id="listenIcon">🎧</span>
+            <span id="listenText">Listen</span>
+          </button>
+          <button id="readScreenBtn" type="button" class="read-screen-btn" title="Hide window briefly, capture screen, and extract text locally via OCR">
+            <span id="readScreenIcon">📷</span>
+            <span id="readScreenText">Read Screen</span>
+          </button>
+          <button id="send" type="submit">
+            <span id="sendText">Send</span>
+          </button>
+        </form>
+        <div class="status" id="statusRow">
+          <span id="status">DeepAI Browser Bridge ready.</span>
+          <a id="openToolLink" href="https://deepai.org/chat" target="_blank" rel="noopener noreferrer" style="margin-left:auto;color:#60a5fa;text-decoration:none;font-weight:600;">Open DeepAI ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Menu Bar (Hidden by default) -->
+    <div id="rightMenuBackdrop" class="right-menu-backdrop"></div>
+    <aside id="rightMenuDrawer" class="right-menu-drawer" aria-label="Models and settings menu" aria-hidden="true">
+      <div class="right-menu-header">
+        <h2>Models &amp; Controls</h2>
+        <button type="button" class="sidebar-icon-btn" id="closeRightMenuBtn" title="Close menu" aria-label="Close right menu">✕</button>
+      </div>
+      <div class="right-menu-body">
+        <div class="right-menu-section">
+          <div class="right-menu-label">AI Model</div>
+          <div class="current-model-card">
+            <span class="current-model-name" id="menuCurrentModelLabel">🤖 DeepAI</span>
+            <span class="current-model-tag">Active</span>
+          </div>
+          <label class="menu-toggle-row" for="showAllModelsToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Show all AI tools</span>
+              <span class="menu-toggle-sub">Toggle to switch between Gemini, ChatGPT, DeepSeek &amp; more</span>
+            </div>
+            <input type="checkbox" id="showAllModelsToggle" />
+          </label>
+          <div class="providers view-hidden" id="providerPickerPanel" role="group" aria-label="Choose an AI assistant">
+            <button class="provider-button" type="button" data-provider="gemini" aria-pressed="false">✨ Gemini</button>
+            <button class="provider-button active" type="button" data-provider="deepai" aria-pressed="true">🤖 DeepAI</button>
+            <button class="provider-button" type="button" data-provider="chatgpt" aria-pressed="false">🟢 ChatGPT</button>
+            <button class="provider-button" type="button" data-provider="deepseek" aria-pressed="false">🐋 DeepSeek</button>
+            <button class="provider-button" type="button" data-provider="perplexity" aria-pressed="false">🔎 Perplexity</button>
+            <button class="provider-button" type="button" data-provider="duckai" aria-pressed="false">🦆 Duck.ai</button>
+            <button class="provider-button" type="button" data-provider="claude" aria-pressed="false">🟣 Claude</button>
+          </div>
+        </div>
+
+        <div class="right-menu-section">
+          <div class="right-menu-label">Modes</div>
+          <label class="menu-toggle-row" for="interviewModeToggle" title="Structure technical answers clearly in interview-ready English (Definition, Purpose, Working, MERN Example, Important Point)">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Interview Mode</span>
+              <span class="menu-toggle-sub">5-step structured interview answers</span>
+            </div>
+            <input type="checkbox" id="interviewModeToggle" checked />
+          </label>
+          <label class="menu-toggle-row" for="directApiToggle" title="Off = Browser Bridge. On = Direct API Mode using your own API keys.">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Direct API</span>
+              <span class="menu-toggle-sub">Use your own API keys instead of Browser Bridge</span>
+            </div>
+            <input type="checkbox" id="directApiToggle" />
+          </label>
+
+          <div id="directApiKeysPanel" class="direct-api-panel view-hidden" role="region" aria-label="User API keys for Direct API Mode">
+            <div id="directApiWarning" class="direct-api-warning view-hidden" role="alert"></div>
+            <div class="direct-api-note">
+              Our app does not use central/developer API keys. Enter your own API key for any AI tool you want to call in Direct API mode (saved to your account database), or turn off Direct API for Browser Bridge.
+            </div>
+            <div class="api-key-item">
+              <div class="api-key-row-head"><span>✨ Gemini</span><span class="api-key-badge" id="drawerBadge_gemini">Not set</span></div>
+              <input type="password" class="api-key-input" id="menuKey_gemini" data-key-provider="gemini" placeholder="AIzaSy..." autocomplete="off" />
+            </div>
+            <div class="api-key-item">
+              <div class="api-key-row-head"><span>🤖 DeepAI</span><span class="api-key-badge" id="drawerBadge_deepai">Not set</span></div>
+              <input type="password" class="api-key-input" id="menuKey_deepai" data-key-provider="deepai" placeholder="DeepAI api-key..." autocomplete="off" />
+            </div>
+            <div class="api-key-item">
+              <div class="api-key-row-head"><span>🟢 ChatGPT (OpenAI)</span><span class="api-key-badge" id="drawerBadge_chatgpt">Not set</span></div>
+              <input type="password" class="api-key-input" id="menuKey_chatgpt" data-key-provider="chatgpt" placeholder="sk-..." autocomplete="off" />
+            </div>
+            <div class="api-key-item">
+              <div class="api-key-row-head"><span>🐋 DeepSeek</span><span class="api-key-badge" id="drawerBadge_deepseek">Not set</span></div>
+              <input type="password" class="api-key-input" id="menuKey_deepseek" data-key-provider="deepseek" placeholder="sk-..." autocomplete="off" />
+            </div>
+            <div class="api-key-item">
+              <div class="api-key-row-head"><span>🔎 Perplexity</span><span class="api-key-badge" id="drawerBadge_perplexity">Not set</span></div>
+              <input type="password" class="api-key-input" id="menuKey_perplexity" data-key-provider="perplexity" placeholder="pplx-..." autocomplete="off" />
+            </div>
+            <div class="api-key-item">
+              <div class="api-key-row-head"><span>🦆 Duck.ai</span><span class="api-key-badge" id="drawerBadge_duckai">Not set</span></div>
+              <input type="password" class="api-key-input" id="menuKey_duckai" data-key-provider="duckai" placeholder="Optional / Bridge mode" autocomplete="off" />
+            </div>
+            <div class="api-key-item">
+              <div class="api-key-row-head"><span>🟣 Claude (Anthropic)</span><span class="api-key-badge" id="drawerBadge_claude">Not set</span></div>
+              <input type="password" class="api-key-input" id="menuKey_claude" data-key-provider="claude" placeholder="sk-ant-..." autocomplete="off" />
+            </div>
+            <button type="button" class="save-keys-inline-btn" id="saveDrawerKeysBtn">Save API Keys</button>
+            <div class="save-keys-feedback" id="drawerKeysFeedback"></div>
+          </div>
+        </div>
+
+        <div class="right-menu-section">
+          <div class="right-menu-label">Workspace</div>
+          <button class="menu-action-btn" id="openSettingsBtn" type="button">
+            <span>Settings &amp; Template</span>
+            <span>→</span>
+          </button>
+          <button class="menu-action-btn" id="wsHomeBtn" type="button">
+            <span>Overview Page</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- Settings / API Keys & Interview Template Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <h2>Interview Template &amp; API Settings</h2>
+      <p>Customize your interview prompt template or save your personal API keys for any AI tool (stored in your account database — we never use central developer keys).</p>
+
+      <div class="form-group">
+        <label for="interviewTemplateInput">
+          <span>Interview Answer Prompt Template</span>
+          <button type="button" id="resetTemplateBtn" class="fb-btn" style="padding:2px 8px;font-size:11px;">Reset Default</button>
+        </label>
+        <textarea id="interviewTemplateInput" rows="5"></textarea>
+      </div>
+
+      <div class="modal-keys-grid">
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="modalKey_gemini">✨ Gemini API Key</label>
+          <input type="password" id="modalKey_gemini" data-modal-key-provider="gemini" placeholder="AIzaSy..." autocomplete="off" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="modalKey_deepai">🤖 DeepAI API Key</label>
+          <input type="password" id="modalKey_deepai" data-modal-key-provider="deepai" placeholder="DeepAI api-key..." autocomplete="off" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="modalKey_chatgpt">🟢 ChatGPT (OpenAI) Key</label>
+          <input type="password" id="modalKey_chatgpt" data-modal-key-provider="chatgpt" placeholder="sk-..." autocomplete="off" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="modalKey_deepseek">🐋 DeepSeek API Key</label>
+          <input type="password" id="modalKey_deepseek" data-modal-key-provider="deepseek" placeholder="sk-..." autocomplete="off" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="modalKey_perplexity">🔎 Perplexity API Key</label>
+          <input type="password" id="modalKey_perplexity" data-modal-key-provider="perplexity" placeholder="pplx-..." autocomplete="off" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="modalKey_duckai">🦆 Duck.ai Key (Optional)</label>
+          <input type="password" id="modalKey_duckai" data-modal-key-provider="duckai" placeholder="Optional / Bridge mode" autocomplete="off" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;grid-column:1 / -1;">
+          <label for="modalKey_claude">🟣 Claude (Anthropic) Key</label>
+          <input type="password" id="modalKey_claude" data-modal-key-provider="claude" placeholder="sk-ant-..." autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="closeSettingsBtn">Cancel</button>
+        <button type="button" class="btn-save" id="saveSettingsBtn">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----------------- AUTH & VIEW NAVIGATION STATE -----------------
+    const landingView = document.querySelector("#landingView");
+    const authView = document.querySelector("#authView");
+    const workspaceView = document.querySelector("#workspaceView");
+
+    const loginForm = document.querySelector("#loginForm");
+    const registerForm = document.querySelector("#registerForm");
+    const forgotForm = document.querySelector("#forgotForm");
+    const resetForm = document.querySelector("#resetForm");
+    const authModeTabs = document.querySelector("#authModeTabs");
+    const authAlert = document.querySelector("#authAlert");
+
+    const loginEmail = document.querySelector("#loginEmail");
+    const loginPassword = document.querySelector("#loginPassword");
+    const rememberMeCheckbox = document.querySelector("#rememberMeCheckbox");
+    const regFullName = document.querySelector("#regFullName");
+    const regEmail = document.querySelector("#regEmail");
+    const regPassword = document.querySelector("#regPassword");
+    const regRememberMeCheckbox = document.querySelector("#regRememberMeCheckbox");
+    const forgotEmail = document.querySelector("#forgotEmail");
+    const resetPasswordInput = document.querySelector("#resetPasswordInput");
+    const resetConfirmPasswordInput = document.querySelector("#resetConfirmPasswordInput");
+    const resetSubtitle = document.querySelector("#resetSubtitle");
+
+    let currentUser = null;
+    let activeChatId = null;
+    let chatsCache = [];
+    let pendingResetToken = "";
+    let redirectAfterAuth = false;
+
+    const TOKEN_KEY = "ai_bridge_auth_token";
+    const REMEMBER_EMAIL_KEY = "ai_bridge_remember_email";
+    const REMEMBER_FLAG_KEY = "ai_bridge_remember_flag";
+
+    function getAuthToken() {
+      return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || "";
+    }
+
+    function storeAuthToken(token, rememberMe) {
+      if (!token) return;
+      if (rememberMe) {
+        localStorage.setItem(TOKEN_KEY, token);
+        sessionStorage.removeItem(TOKEN_KEY);
+      } else {
+        sessionStorage.setItem(TOKEN_KEY, token);
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    }
+
+    function clearAuthStorage() {
+      localStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
+
+    async function authFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+      const token = getAuthToken();
+      if (token && !headers.has("Authorization")) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: "include"
+      });
+      if (response.status === 401 && url !== "/api/auth/login") {
+        currentUser = null;
+        clearAuthStorage();
+      }
+      return response;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function showAuthAlert(type, htmlMessage) {
+      authAlert.className = `auth-alert active ${type}`;
+      authAlert.innerHTML = htmlMessage;
+    }
+
+    function clearAuthAlert() {
+      authAlert.className = "auth-alert";
+      authAlert.innerHTML = "";
+    }
+
+    function showView(viewName) {
+      landingView.classList.toggle("view-hidden", viewName !== "landing");
+      authView.classList.toggle("view-hidden", viewName !== "auth");
+      workspaceView.classList.toggle("view-hidden", viewName !== "workspace");
+    }
+
+    function switchAuthPanel(mode) {
+      clearAuthAlert();
+      showView("auth");
+      const showTabs = mode === "login" || mode === "register";
+      authModeTabs.classList.toggle("view-hidden", !showTabs);
+      document.querySelector("#tabLoginBtn").classList.toggle("active", mode === "login");
+      document.querySelector("#tabRegisterBtn").classList.toggle("active", mode === "register");
+
+      loginForm.classList.toggle("view-hidden", mode !== "login");
+      registerForm.classList.toggle("view-hidden", mode !== "register");
+      forgotForm.classList.toggle("view-hidden", mode !== "forgot");
+      resetForm.classList.toggle("view-hidden", mode !== "reset");
+
+      if (mode === "login") {
+        const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY) || "";
+        const wasRemembered = localStorage.getItem(REMEMBER_FLAG_KEY) === "true";
+        if (savedEmail && !loginEmail.value) loginEmail.value = savedEmail;
+        rememberMeCheckbox.checked = wasRemembered;
+      }
+    }
+
+    // Password show/hide toggles
+    document.querySelectorAll("[data-toggle-pw]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.dataset.togglePw);
+        if (!target) return;
+        const isPw = target.type === "password";
+        target.type = isPw ? "text" : "password";
+        btn.textContent = isPw ? "Hide" : "Show";
+      });
+    });
+
+    function updateLandingHeaderAuthState() {
+      const loginBtn = document.querySelector("#landingLoginBtn");
+      const regBtn = document.querySelector("#landingRegisterBtn");
+      const getStartedBtn = document.querySelector("#getStartedBtn");
+      if (currentUser) {
+        loginBtn.textContent = "Workspace";
+        regBtn.textContent = "Logout";
+        getStartedBtn.textContent = "Get Started — Open Chat";
+      } else {
+        loginBtn.textContent = "Login";
+        regBtn.textContent = "Register";
+        getStartedBtn.textContent = "Get Started";
+      }
+    }
+
+    function openChatBoxOrAuth() {
+      if (currentUser) {
+        enterWorkspace();
+      } else {
+        redirectAfterAuth = true;
+        switchAuthPanel("login");
+        showAuthAlert("success", "Sign in or create an account to enter your AI Bridge chat box and save history.");
+      }
+    }
+
+    document.querySelector("#getStartedBtn").addEventListener("click", openChatBoxOrAuth);
+    document.querySelector("#footerStartBtn").addEventListener("click", openChatBoxOrAuth);
+    document.querySelector("#landingLoginBtn").addEventListener("click", () => {
+      if (currentUser) enterWorkspace();
+      else {
+        redirectAfterAuth = true;
+        switchAuthPanel("login");
+      }
+    });
+    document.querySelector("#landingRegisterBtn").addEventListener("click", async () => {
+      if (currentUser) {
+        await performLogout();
+      } else {
+        redirectAfterAuth = true;
+        switchAuthPanel("register");
+      }
+    });
+    document.querySelector("#footerRegisterBtn").addEventListener("click", () => {
+      redirectAfterAuth = true;
+      switchAuthPanel("register");
+    });
+    document.querySelector("#footerLoginBtn").addEventListener("click", () => {
+      redirectAfterAuth = true;
+      switchAuthPanel("login");
+    });
+    document.querySelector("#footerForgotBtn").addEventListener("click", () => switchAuthPanel("forgot"));
+    document.querySelector("#authBackHomeBtn").addEventListener("click", () => showView("landing"));
+    document.querySelector("#authBackHomeLogo").addEventListener("click", () => showView("landing"));
+    document.querySelector("#wsHomeBtn").addEventListener("click", () => {
+      setRightMenuOpen(false);
+      updateLandingHeaderAuthState();
+      showView("landing");
+    });
+
+    document.querySelector("#tabLoginBtn").addEventListener("click", () => switchAuthPanel("login"));
+    document.querySelector("#tabRegisterBtn").addEventListener("click", () => switchAuthPanel("register"));
+    document.querySelector("#switchToRegisterBtn").addEventListener("click", () => switchAuthPanel("register"));
+    document.querySelector("#switchToLoginBtn").addEventListener("click", () => switchAuthPanel("login"));
+    document.querySelector("#gotoForgotBtn").addEventListener("click", () => switchAuthPanel("forgot"));
+    document.querySelector("#forgotBackLoginBtn").addEventListener("click", () => switchAuthPanel("login"));
+    document.querySelector("#resetBackLoginBtn").addEventListener("click", () => {
+      window.history.replaceState({}, document.title, "/");
+      switchAuthPanel("login");
+    });
+
+    // Register submission
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAuthAlert();
+      const fullName = regFullName.value.trim();
+      const email = regEmail.value.trim();
+      const password = regPassword.value;
+      const rememberMe = regRememberMeCheckbox.checked;
+
+      if (password.length <= 6) {
+        showAuthAlert("error", "Password must be more than 6 characters (minimum 7 characters).");
+        return;
+      }
+
+      const btn = document.querySelector("#registerSubmitBtn");
+      btn.disabled = true;
+      btn.textContent = "Creating account...";
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ fullName, email, password, rememberMe })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Registration failed.");
+        }
+        currentUser = data.user;
+        storeAuthToken(data.token, rememberMe);
+        if (rememberMe) {
+          localStorage.setItem(REMEMBER_EMAIL_KEY, data.user.email);
+          localStorage.setItem(REMEMBER_FLAG_KEY, "true");
+        }
+        registerForm.reset();
+        await enterWorkspace();
+      } catch (err) {
+        showAuthAlert("error", escapeHtml(err.message));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Create Account";
+      }
+    });
+
+    // Login submission
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAuthAlert();
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value;
+      const rememberMe = rememberMeCheckbox.checked;
+
+      const btn = document.querySelector("#loginSubmitBtn");
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, password, rememberMe })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Sign in failed.");
+        }
+        currentUser = data.user;
+        storeAuthToken(data.token, rememberMe);
+        if (rememberMe) {
+          localStorage.setItem(REMEMBER_EMAIL_KEY, data.user.email);
+          localStorage.setItem(REMEMBER_FLAG_KEY, "true");
+        } else {
+          localStorage.removeItem(REMEMBER_EMAIL_KEY);
+          localStorage.setItem(REMEMBER_FLAG_KEY, "false");
+        }
+        loginPassword.value = "";
+        await enterWorkspace();
+      } catch (err) {
+        showAuthAlert("error", escapeHtml(err.message));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+      }
+    });
+
+    // Forgot Password submission
+    forgotForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAuthAlert();
+      const email = forgotEmail.value.trim();
+      const btn = document.querySelector("#forgotSubmitBtn");
+      btn.disabled = true;
+      btn.textContent = "Checking email & sending...";
+      try {
+        const res = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Could not send password reset email.");
+        }
+        let extra = "";
+        if (data.previewUrl) {
+          extra += `<div style="margin-top:8px;"><a href="${escapeHtml(data.previewUrl)}" target="_blank" rel="noopener noreferrer" style="color:#93c5fd;font-weight:600;">View Sent Email Preview ↗</a></div>`;
+        }
+        if (data.resetUrl) {
+          extra += `<div style="margin-top:8px;"><button type="button" id="directOpenResetBtn" class="fb-btn">Open Password Reset Fields →</button></div>`;
+        }
+        showAuthAlert(
+          "success",
+          `Password reset link sent to <strong>${escapeHtml(data.email)}</strong> (expires in ${data.expiresInMinutes} mins).${extra}`
+        );
+        if (data.resetUrl) {
+          const directBtn = document.querySelector("#directOpenResetBtn");
+          directBtn?.addEventListener("click", () => {
+            const urlObj = new URL(data.resetUrl);
+            const tok = urlObj.searchParams.get("resetToken");
+            if (tok) openResetPasswordWithToken(tok);
+          });
+        }
+      } catch (err) {
+        showAuthAlert("error", escapeHtml(err.message));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Send Reset Email";
+      }
+    });
+
+    async function openResetPasswordWithToken(token) {
+      pendingResetToken = token;
+      switchAuthPanel("reset");
+      resetSubtitle.textContent = "Verifying your reset link...";
+      try {
+        const res = await fetch(`/api/auth/verify-reset-token?token=${encodeURIComponent(token)}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.valid) {
+          throw new Error(data.error || "Reset link is invalid or expired.");
+        }
+        resetSubtitle.innerHTML = `Updating password for <strong>${escapeHtml(data.email)}</strong>. Password must contain more than 6 characters.`;
+      } catch (err) {
+        resetSubtitle.textContent = "Reset link error.";
+        showAuthAlert("error", escapeHtml(err.message));
+      }
+    }
+
+    // Reset Password submission
+    resetForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAuthAlert();
+      const password = resetPasswordInput.value;
+      const confirmPassword = resetConfirmPasswordInput.value;
+
+      if (password.length <= 6) {
+        showAuthAlert("error", "Password must be more than 6 characters (minimum 7 characters).");
+        return;
+      }
+      if (password !== confirmPassword) {
+        showAuthAlert("error", "Password and Confirm Password do not match.");
+        return;
+      }
+
+      const btn = document.querySelector("#resetSubmitBtn");
+      btn.disabled = true;
+      btn.textContent = "Updating password...";
+      try {
+        const res = await fetch("/api/auth/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: pendingResetToken,
+            password,
+            confirmPassword
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Could not update password.");
+        }
+        pendingResetToken = "";
+        resetForm.reset();
+        window.history.replaceState({}, document.title, "/");
+        switchAuthPanel("login");
+        loginEmail.value = data.email || "";
+        showAuthAlert("success", `Password updated for <strong>${escapeHtml(data.email)}</strong>. You can sign in now.`);
+      } catch (err) {
+        showAuthAlert("error", escapeHtml(err.message));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Reset Password";
+      }
+    });
+
+    // ----------------- SIDEBAR & CHAT HISTORY LOGIC -----------------
+    const chatSidebar = document.querySelector("#chatSidebar");
+    const closeSidebarBtn = document.querySelector("#closeSidebarBtn");
+    const openSidebarBtn = document.querySelector("#openSidebarBtn");
+    const newChatBtn = document.querySelector("#newChatBtn");
+    const chatHistoryList = document.querySelector("#chatHistoryList");
+    const logoutBtn = document.querySelector("#logoutBtn");
+    const userAvatarInitials = document.querySelector("#userAvatarInitials");
+    const sidebarUserName = document.querySelector("#sidebarUserName");
+    const sidebarUserEmail = document.querySelector("#sidebarUserEmail");
+
+    function setSidebarCollapsed(collapsed) {
+      chatSidebar.classList.toggle("collapsed", collapsed);
+      openSidebarBtn.classList.toggle("view-hidden", !collapsed);
+    }
+
+    closeSidebarBtn.addEventListener("click", () => setSidebarCollapsed(true));
+    openSidebarBtn.addEventListener("click", () => setSidebarCollapsed(false));
+
+    async function performLogout() {
+      if (isListening) {
+        await stopListening().catch(() => {});
+      }
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
+      clearAuthStorage();
+      currentUser = null;
+      activeChatId = null;
+      chatsCache = [];
+      chat.innerHTML = "";
+      if (typeof resetUserApiKeysUi === "function") resetUserApiKeysUi();
+      if (typeof setRightMenuOpen === "function") setRightMenuOpen(false);
+      updateLandingHeaderAuthState();
+      showView("landing");
+    }
+
+    logoutBtn.addEventListener("click", performLogout);
+
+    function getDateGroupLabel(dateStr) {
+      const d = new Date(dateStr);
+      if (Number.isNaN(d.getTime())) return "Recent";
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const startOfItem = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      const diffDays = Math.round((startOfToday - startOfItem) / 86400000);
+      if (diffDays <= 0) return "Today";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays <= 7) return "Previous 7 Days";
+      return "Older";
+    }
+
+    function renderChatSidebarList() {
+      if (!chatsCache.length) {
+        chatHistoryList.innerHTML = `<div class="history-empty">No saved chats yet. Ask a question to create your first chat.</div>`;
+        return;
+      }
+
+      const groups = new Map();
+      for (const c of chatsCache) {
+        const label = getDateGroupLabel(c.updatedAt || c.createdAt);
+        if (!groups.has(label)) groups.set(label, []);
+        groups.get(label).push(c);
+      }
+
+      const parts = [];
+      for (const [label, items] of groups.entries()) {
+        parts.push(`<div class="history-group-label">${escapeHtml(label)}</div>`);
+        for (const item of items) {
+          const isActive = item.id === activeChatId;
+          parts.push(`
+            <div class="history-item ${isActive ? "active" : ""}" data-chat-id="${escapeHtml(item.id)}">
+              <span class="history-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title || "New Chat")}</span>
+              <div class="history-actions">
+                <button type="button" class="history-act-btn" data-delete-chat="${escapeHtml(item.id)}" title="Delete chat" aria-label="Delete chat">✕</button>
+              </div>
+            </div>
+          `);
+        }
+      }
+      chatHistoryList.innerHTML = parts.join("");
+    }
+
+    async function loadUserChats() {
+      if (!currentUser) return;
+      try {
+        const res = await authFetch("/api/chats");
+        if (!res.ok) return;
+        const data = await res.json();
+        chatsCache = Array.isArray(data.chats) ? data.chats : [];
+        renderChatSidebarList();
+      } catch {}
+    }
+
+    function renderWelcomeChat() {
+      chat.innerHTML = `
+        <div class="bubble ai">
+          <div class="ai-header">AI Bridge</div>
+          Ready with <strong>DeepAI</strong>! Open <strong>⚙ Menu</strong> in the top-right bar anytime to toggle all AI models (Gemini, ChatGPT, DeepSeek, Perplexity, Duck.ai, Claude), Interview Mode, Direct API, or Settings &amp; Template.
+        </div>
+      `;
+    }
+
+    function startNewChat() {
+      activeChatId = null;
+      renderWelcomeChat();
+      renderChatSidebarList();
+      input.focus();
+      status.textContent = `Started a new chat with ${providerLabel(selectedProvider)}.`;
+    }
+
+    newChatBtn.addEventListener("click", () => {
+      if (!isGenerating) startNewChat();
+    });
+
+    async function openSavedChat(chatId) {
+      if (isGenerating || !chatId) return;
+      try {
+        const res = await authFetch(`/api/chats/${encodeURIComponent(chatId)}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.chat) {
+          throw new Error(data.error || "Could not load chat.");
+        }
+        activeChatId = data.chat.id;
+        if (data.chat.provider && PROVIDER_URLS[data.chat.provider]) {
+          selectProviderUiOnly(data.chat.provider);
+        }
+        chat.innerHTML = "";
+        if (!data.chat.messages || data.chat.messages.length === 0) {
+          renderWelcomeChat();
+        } else {
+          for (const msg of data.chat.messages) {
+            addBubble(msg.text, msg.role === "user" ? "user" : "ai", msg.provider || providerLabel(selectedProvider));
+          }
+        }
+        renderChatSidebarList();
+        status.textContent = `Loaded chat: ${data.chat.title}`;
+      } catch (err) {
+        status.textContent = `⚠️ ${err.message}`;
+      }
+    }
+
+    chatHistoryList.addEventListener("click", async (e) => {
+      const delBtn = e.target.closest("[data-delete-chat]");
+      if (delBtn) {
+        e.stopPropagation();
+        const chatId = delBtn.dataset.deleteChat;
+        // Two-click inline delete confirmation (never uses window.confirm)
+        if (!delBtn.classList.contains("confirm-del")) {
+          delBtn.classList.add("confirm-del");
+          delBtn.textContent = "Del?";
+          setTimeout(() => {
+            delBtn.classList.remove("confirm-del");
+            delBtn.textContent = "✕";
+          }, 2600);
+          return;
+        }
+        const res = await authFetch(`/api/chats/${encodeURIComponent(chatId)}`, { method: "DELETE" });
+        if (res.ok) {
+          if (activeChatId === chatId) startNewChat();
+          await loadUserChats();
+        }
+        return;
+      }
+
+      const item = e.target.closest(".history-item");
+      if (item && item.dataset.chatId) {
+        await openSavedChat(item.dataset.chatId);
+      }
+    });
+
+    async function enterWorkspace() {
+      if (!currentUser) {
+        switchAuthPanel("login");
+        return;
+      }
+      const initials = String(currentUser.fullName || currentUser.email || "U")
+        .split(/\s+/)
+        .map((s) => s[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+      userAvatarInitials.textContent = initials || "U";
+      sidebarUserName.textContent = currentUser.fullName || "User";
+      sidebarUserEmail.textContent = currentUser.email || "";
+
+      updateLandingHeaderAuthState();
+      showView("workspace");
+      if (!chat.children.length) renderWelcomeChat();
+      await refreshServerSettings();
+      await loadUserChats();
+    }
+
+    // ----------------- WORKSPACE CHAT + TOOLS -----------------
+    const form = document.querySelector("#form");
+    const input = document.querySelector("#message");
+    const listenBtn = document.querySelector("#listenBtn");
+    const listenIcon = document.querySelector("#listenIcon");
+    const listenText = document.querySelector("#listenText");
+    const readScreenBtn = document.querySelector("#readScreenBtn");
+    const readScreenIcon = document.querySelector("#readScreenIcon");
+    const readScreenText = document.querySelector("#readScreenText");
+    const sendBtn = document.querySelector("#send");
+    const sendText = document.querySelector("#sendText");
+    const chat = document.querySelector("#chat");
+    const status = document.querySelector("#status");
+    const openToolLink = document.querySelector("#openToolLink");
+    const modeBadge = document.querySelector("#modeBadge");
+    const activeModelLabel = document.querySelector("#activeModelLabel");
+    const menuCurrentModelLabel = document.querySelector("#menuCurrentModelLabel");
+    const rightMenuBtn = document.querySelector("#rightMenuBtn");
+    const closeRightMenuBtn = document.querySelector("#closeRightMenuBtn");
+    const rightMenuDrawer = document.querySelector("#rightMenuDrawer");
+    const rightMenuBackdrop = document.querySelector("#rightMenuBackdrop");
+    const showAllModelsToggle = document.querySelector("#showAllModelsToggle");
+    const providerPickerPanel = document.querySelector("#providerPickerPanel");
+    const interviewModeToggle = document.querySelector("#interviewModeToggle");
+    const directApiToggle = document.querySelector("#directApiToggle");
+    const providerButtons = [...document.querySelectorAll(".provider-button")];
+
+    function setRightMenuOpen(open) {
+      rightMenuDrawer.classList.toggle("open", open);
+      rightMenuBackdrop.classList.toggle("open", open);
+      rightMenuDrawer.setAttribute("aria-hidden", String(!open));
+      rightMenuBtn.setAttribute("aria-expanded", String(open));
+    }
+
+    rightMenuBtn.addEventListener("click", () => {
+      setRightMenuOpen(!rightMenuDrawer.classList.contains("open"));
+    });
+    closeRightMenuBtn.addEventListener("click", () => setRightMenuOpen(false));
+    rightMenuBackdrop.addEventListener("click", () => setRightMenuOpen(false));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && rightMenuDrawer.classList.contains("open")) {
+        setRightMenuOpen(false);
+      }
+    });
+
+    showAllModelsToggle.addEventListener("change", () => {
+      providerPickerPanel.classList.toggle("view-hidden", !showAllModelsToggle.checked);
+    });
+
+    const PROVIDER_URLS = {
+      gemini: "https://gemini.google.com/app",
+      chatgpt: "https://chatgpt.com/",
+      deepseek: "https://chat.deepseek.com/",
+      claude: "https://claude.ai/new",
+      duckai: "https://duck.ai/",
+      deepai: "https://deepai.org/chat",
+      perplexity: "https://www.perplexity.ai/"
+    };
+
+    // Settings Modal & Per-User API Keys elements
+    const API_KEY_PROVIDERS = ["gemini", "deepai", "chatgpt", "deepseek", "perplexity", "duckai", "claude"];
+    const settingsModal = document.querySelector("#settingsModal");
+    const openSettingsBtn = document.querySelector("#openSettingsBtn");
+    const closeSettingsBtn = document.querySelector("#closeSettingsBtn");
+    const saveSettingsBtn = document.querySelector("#saveSettingsBtn");
+    const resetTemplateBtn = document.querySelector("#resetTemplateBtn");
+    const interviewTemplateInput = document.querySelector("#interviewTemplateInput");
+    const directApiKeysPanel = document.querySelector("#directApiKeysPanel");
+    const directApiWarning = document.querySelector("#directApiWarning");
+    const saveDrawerKeysBtn = document.querySelector("#saveDrawerKeysBtn");
+    const drawerKeysFeedback = document.querySelector("#drawerKeysFeedback");
+
+    const drawerKeyInputs = {};
+    const modalKeyInputs = {};
+    for (const p of API_KEY_PROVIDERS) {
+      drawerKeyInputs[p] = document.querySelector(`#menuKey_${p}`);
+      modalKeyInputs[p] = document.querySelector(`#modalKey_${p}`);
+    }
+
+    let selectedProvider = "deepai";
+    let activeAbortController = null;
+    let isGenerating = false;
+    let isReadingScreen = false;
+    let isListening = false;
+    let listenState = null;
+    let userApiKeys = {
+      gemini: "",
+      deepai: "",
+      chatgpt: "",
+      deepseek: "",
+      perplexity: "",
+      duckai: "",
+      claude: ""
+    };
+    let configuredBrowser = "";
+    let defaultInterviewTemplate = [
+      "Answer clearly in natural, conversational, interview-ready English without heavy jargon so I can speak or deliver this directly in an interview.",
+      "Format the response cleanly with Markdown headings (##), concise bullet points, **bold** key terms, and labeled fenced code blocks (```language) whenever code helps explain the concept.",
+      "",
+      "For technical or programming questions, strictly follow these 5 steps:",
+      "## 1. Definition (What is it?)",
+      "Start with a simple, technically accurate definition.",
+      "",
+      "## 2. Purpose (Why do we use it?)",
+      "Explain the problem it solves or why developers need it.",
+      "",
+      "## 3. Working (How does it work?)",
+      "Explain its internal working or execution flow clearly step by step.",
+      "",
+      "## 4. Practical Example (Where do we use it?)",
+      "Give a real-world development example, preferably from MERN projects, and include a clean code snippet if helpful.",
+      "",
+      "## 5. Important Point (What should we remember?)",
+      "Mention a limitation, advantage, best practice, or common mistake.",
+      "",
+      "If the question is a Multiple-Choice Question (MCQ) or non-technical HR question, answer naturally using clear headings without forcing code."
+    ].join("\n");
+
+    const storedInterview = localStorage.getItem("ai_bridge_interview_mode");
+    let interviewMode = storedInterview === null ? true : storedInterview === "true";
+    interviewModeToggle.checked = interviewMode;
+
+    let customTemplate = localStorage.getItem("ai_bridge_interview_template") || "";
+    interviewTemplateInput.value = customTemplate || defaultInterviewTemplate;
+
+    let directApiMode = false;
+    directApiToggle.checked = false;
+
+    function resetUserApiKeysUi() {
+      for (const p of API_KEY_PROVIDERS) {
+        userApiKeys[p] = "";
+        if (drawerKeyInputs[p]) drawerKeyInputs[p].value = "";
+        if (modalKeyInputs[p]) modalKeyInputs[p].value = "";
+      }
+      directApiMode = false;
+      directApiToggle.checked = false;
+      drawerKeysFeedback.textContent = "";
+      renderDirectApiState();
+      updateBadge();
+    }
+
+    function syncKeyInputsFromState() {
+      for (const p of API_KEY_PROVIDERS) {
+        const val = userApiKeys[p] || "";
+        if (drawerKeyInputs[p]) drawerKeyInputs[p].value = val;
+        if (modalKeyInputs[p]) modalKeyInputs[p].value = val;
+        const badgeEl = document.querySelector(`#drawerBadge_${p}`);
+        if (badgeEl) {
+          badgeEl.textContent = val ? "✓ Key saved" : "Not set";
+          badgeEl.classList.toggle("saved", Boolean(val));
+        }
+      }
+    }
+
+    function getConfiguredProviders(sourceMap = null) {
+      const src = sourceMap || collectKeysFromDrawer();
+      return API_KEY_PROVIDERS.filter((p) => Boolean(String(src[p] || "").trim()));
+    }
+
+    function collectKeysFromDrawer() {
+      const out = {};
+      for (const p of API_KEY_PROVIDERS) {
+        out[p] = (drawerKeyInputs[p]?.value ?? userApiKeys[p] ?? "").trim();
+      }
+      return out;
+    }
+
+    function collectKeysFromModal() {
+      const out = {};
+      for (const p of API_KEY_PROVIDERS) {
+        out[p] = (modalKeyInputs[p]?.value ?? userApiKeys[p] ?? "").trim();
+      }
+      return out;
+    }
+
+    function renderDirectApiState() {
+      syncKeyInputsFromState();
+      directApiKeysPanel.classList.toggle("view-hidden", !directApiMode);
+
+      if (!directApiMode) {
+        directApiWarning.classList.add("view-hidden");
+        directApiWarning.textContent = "";
+        return;
+      }
+
+      const configured = getConfiguredProviders(userApiKeys);
+      const activeKey = getActiveKey();
+
+      if (configured.length === 0) {
+        directApiWarning.classList.remove("view-hidden");
+        directApiWarning.innerHTML = `<strong>⚠️ Add an API key:</strong> No API keys are saved in your account. This app does not use central developer API keys — enter your own API key for at least one AI tool below, otherwise Direct API cannot return a response (or turn OFF Direct API for Browser Bridge).`;
+      } else if (!activeKey) {
+        const savedNames = configured.map((p) => providerLabel(p)).join(", ");
+        directApiWarning.classList.remove("view-hidden");
+        directApiWarning.innerHTML = `<strong>⚠️ No API key for ${escapeHtml(providerLabel(selectedProvider))}:</strong> Add a ${escapeHtml(providerLabel(selectedProvider))} API key below or switch to one of your configured models (<strong>${escapeHtml(savedNames)}</strong>) to get an API response.`;
+      } else {
+        directApiWarning.classList.add("view-hidden");
+        directApiWarning.textContent = "";
+      }
+    }
+
+    async function persistUserApiKeys(keysObject) {
+      const res = await authFetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKeys: keysObject })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not save API keys.");
+      if (data.apiKeys) {
+        for (const p of API_KEY_PROVIDERS) {
+          userApiKeys[p] = String(data.apiKeys[p] || "").trim();
+        }
+      }
+      syncKeyInputsFromState();
+      return userApiKeys;
+    }
+
+    async function refreshServerSettings() {
+      try {
+        const res = await authFetch("/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.apiKeys && typeof data.apiKeys === "object") {
+            for (const p of API_KEY_PROVIDERS) {
+              userApiKeys[p] = String(data.apiKeys[p] || "").trim();
+            }
+          }
+          if (data.defaultInterviewTemplate) {
+            defaultInterviewTemplate = data.defaultInterviewTemplate;
+            if (!customTemplate) {
+              interviewTemplateInput.value = defaultInterviewTemplate;
+            }
+          }
+          configuredBrowser = data.configuredBrowser || "";
+          if (!directApiMode && configuredBrowser) {
+            status.textContent = `${providerLabel(selectedProvider)} ready via ${configuredBrowser}.`;
+          }
+          renderDirectApiState();
+          updateBadge();
+        }
+      } catch {}
+    }
+
+    interviewModeToggle.addEventListener("change", () => {
+      interviewMode = interviewModeToggle.checked;
+      localStorage.setItem("ai_bridge_interview_mode", String(interviewMode));
+      status.textContent = interviewMode
+        ? "Interview Mode ON — answers follow the 5-step interview structure."
+        : "Interview Mode OFF — sending prompts directly.";
+    });
+
+    directApiToggle.addEventListener("change", () => {
+      directApiMode = directApiToggle.checked;
+      updateBadge();
+      drawerKeysFeedback.textContent = "";
+
+      if (directApiMode) {
+        // Automatically select a model that has a saved user API key if the current one does not
+        const configuredCallable = getConfiguredProviders(userApiKeys).filter((p) => p !== "duckai");
+        if (!getActiveKey() && configuredCallable.length > 0) {
+          selectProviderUiOnly(configuredCallable[0]);
+        }
+        renderDirectApiState();
+        const label = providerLabel(selectedProvider);
+        if (hasApiKeyForSelected()) {
+          status.textContent = `${label}: Direct API Mode enabled with your saved API key.`;
+        } else {
+          status.textContent = `⚠️ Direct API Mode needs your own API key — enter a key in the menu or turn off Direct API for Browser Bridge.`;
+        }
+      } else {
+        renderDirectApiState();
+        status.textContent = `${providerLabel(selectedProvider)}: Browser Bridge mode active.`;
+      }
+    });
+
+    saveDrawerKeysBtn.addEventListener("click", async () => {
+      drawerKeysFeedback.textContent = "Saving...";
+      saveDrawerKeysBtn.disabled = true;
+      try {
+        const entered = collectKeysFromDrawer();
+        await persistUserApiKeys(entered);
+        const configuredCallable = getConfiguredProviders(userApiKeys).filter((p) => p !== "duckai");
+        if (directApiMode && !getActiveKey() && configuredCallable.length > 0) {
+          selectProviderUiOnly(configuredCallable[0]);
+        }
+        renderDirectApiState();
+        if (configuredCallable.length > 0) {
+          drawerKeysFeedback.textContent = `✓ Saved to your account (${configuredCallable.map(providerLabel).join(", ")}).`;
+          status.textContent = `${providerLabel(selectedProvider)}: API key saved and ready.`;
+        } else {
+          drawerKeysFeedback.textContent = "Saved (all API keys cleared).";
+          status.textContent = directApiMode
+            ? "⚠️ Add at least one API key to receive Direct API responses."
+            : `${providerLabel(selectedProvider)}: Browser Bridge mode active.`;
+        }
+      } catch (err) {
+        drawerKeysFeedback.textContent = `⚠️ ${err.message}`;
+      } finally {
+        saveDrawerKeysBtn.disabled = false;
+      }
+    });
+
+    openSettingsBtn.addEventListener("click", () => {
+      setRightMenuOpen(false);
+      syncKeyInputsFromState();
+      interviewTemplateInput.value = customTemplate || defaultInterviewTemplate;
+      settingsModal.classList.add("active");
+    });
+    closeSettingsBtn.addEventListener("click", () => settingsModal.classList.remove("active"));
+    resetTemplateBtn.addEventListener("click", () => {
+      interviewTemplateInput.value = defaultInterviewTemplate;
+    });
+    saveSettingsBtn.addEventListener("click", async () => {
+      const enteredTpl = interviewTemplateInput.value.trim();
+      if (!enteredTpl || enteredTpl === defaultInterviewTemplate.trim()) {
+        customTemplate = "";
+        localStorage.removeItem("ai_bridge_interview_template");
+      } else {
+        customTemplate = enteredTpl;
+        localStorage.setItem("ai_bridge_interview_template", customTemplate);
+      }
+
+      try {
+        await persistUserApiKeys(collectKeysFromModal());
+        const configuredCallable = getConfiguredProviders(userApiKeys).filter((p) => p !== "duckai");
+        if (directApiMode && !getActiveKey() && configuredCallable.length > 0) {
+          selectProviderUiOnly(configuredCallable[0]);
+        }
+        settingsModal.classList.remove("active");
+        renderDirectApiState();
+        updateBadge();
+        status.textContent = "Settings & API keys saved to your account.";
+      } catch (err) {
+        status.textContent = `⚠️ ${err.message}`;
+      }
+    });
+
+    function getActiveKey() {
+      const typed = drawerKeyInputs[selectedProvider]?.value?.trim();
+      return typed || userApiKeys[selectedProvider] || "";
+    }
+
+    function hasApiKeyForSelected() {
+      return Boolean(getActiveKey());
+    }
+
+    function updateBadge() {
+      modeBadge.textContent = directApiMode ? "Direct API Mode" : "Browser Bridge";
+    }
+
+    function providerLabel(provider) {
+      const labels = {
+        gemini: "Gemini",
+        chatgpt: "ChatGPT",
+        deepseek: "DeepSeek",
+        claude: "Claude",
+        duckai: "Duck.ai",
+        deepai: "DeepAI",
+        perplexity: "Perplexity"
+      };
+      return labels[provider] || "DeepAI";
+    }
+
+    function providerBadgeIcon(provider) {
+      const icons = {
+        gemini: "✨",
+        deepai: "🤖",
+        chatgpt: "🟢",
+        deepseek: "🐋",
+        perplexity: "🔎",
+        duckai: "🦆",
+        claude: "🟣"
+      };
+      return icons[provider] || "🤖";
+    }
+
+    function selectProviderUiOnly(provider) {
+      selectedProvider = provider;
+      providerButtons.forEach((item) => {
+        const active = item.dataset.provider === provider;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-pressed", String(active));
+      });
+      const label = providerLabel(selectedProvider);
+      if (activeModelLabel) activeModelLabel.textContent = label;
+      if (menuCurrentModelLabel) menuCurrentModelLabel.textContent = `${providerBadgeIcon(selectedProvider)} ${label}`;
+      input.placeholder = `Ask ${label} something... (Press Enter to send)`;
+      openToolLink.href = PROVIDER_URLS[selectedProvider] || "#";
+      openToolLink.textContent = `Open ${label} ↗`;
+      if (typeof renderDirectApiState === "function") renderDirectApiState();
+    }
+
+    // Syntax Highlighter + ChatGPT-style Markdown Formatter
+    function highlightCode(rawCode, lang = "") {
+      const l = String(lang || "").toLowerCase();
+      const useHashComment = /^(py|python|bash|sh|zsh|yaml|yml|ruby|toml)$/.test(l);
+      const tokenRe = useHashComment
+        ? /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*)|(`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b\d+(?:\.\d+)?\b)|\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|default|try|catch|finally|throw|new|class|extends|super|import|export|from|as|async|await|yield|typeof|instanceof|in|of|this|delete|void|interface|type|enum|implements|def|elif|pass|with|raise|lambda|print|SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|JOIN|ON|GROUP|BY|ORDER|LIMIT|CREATE|TABLE|AND|OR|NOT|true|false|null|undefined|None|True|False|NaN)\b|\b([a-zA-Z_$][\w$]*)(?=\s*\()|\b([A-Z][a-zA-Z0-9_$]*)\b|\.([a-zA-Z_$][\w$]*)|(===|!==|==|!=|<=|>=|=>|&&|\|\||\?\?|[=<>+\-*/%!&|]+)/g
+        : /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b\d+(?:\.\d+)?\b)|\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|default|try|catch|finally|throw|new|class|extends|super|import|export|from|as|async|await|yield|typeof|instanceof|in|of|this|delete|void|interface|type|enum|implements|def|elif|pass|with|raise|lambda|print|SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|JOIN|ON|GROUP|BY|ORDER|LIMIT|CREATE|TABLE|AND|OR|NOT|true|false|null|undefined|None|True|False|NaN)\b|\b([a-zA-Z_$][\w$]*)(?=\s*\()|\b([A-Z][a-zA-Z0-9_$]*)\b|\.([a-zA-Z_$][\w$]*)|(===|!==|==|!=|<=|>=|=>|&&|\|\||\?\?|[=<>+\-*/%!&|]+)/g;
+
+      let out = "";
+      let lastIdx = 0;
+      let m;
+      while ((m = tokenRe.exec(rawCode)) !== null) {
+        if (m.index > lastIdx) {
+          out += escapeHtml(rawCode.slice(lastIdx, m.index));
+        }
+        const [full, cmt, str, num, kw, fn, typeName, prop, op] = m;
+        if (cmt) {
+          out += `<span class="tok-cmt">${escapeHtml(cmt)}</span>`;
+        } else if (str) {
+          out += `<span class="tok-str">${escapeHtml(str)}</span>`;
+        } else if (num) {
+          out += `<span class="tok-num">${escapeHtml(num)}</span>`;
+        } else if (kw) {
+          const cls = /^(true|false|null|undefined|None|True|False|NaN)$/.test(kw) ? "tok-num" : "tok-kw";
+          out += `<span class="${cls}">${escapeHtml(kw)}</span>`;
+        } else if (fn) {
+          out += `<span class="tok-fn">${escapeHtml(fn)}</span>`;
+        } else if (typeName) {
+          out += `<span class="tok-type">${escapeHtml(typeName)}</span>`;
+        } else if (prop) {
+          out += `.<span class="tok-prop">${escapeHtml(prop)}</span>`;
+        } else if (op) {
+          out += `<span class="tok-op">${escapeHtml(op)}</span>`;
+        } else {
+          out += escapeHtml(full);
+        }
+        lastIdx = tokenRe.lastIndex;
+      }
+      if (lastIdx < rawCode.length) {
+        out += escapeHtml(rawCode.slice(lastIdx));
+      }
+      return out;
+    }
+
+    function renderCodeBlockCard(lang, rawCode) {
+      const cleanLang = (lang || "code").trim().toLowerCase() || "code";
+      const trimmedCode = String(rawCode || "").replace(/^\n+|\n+$/g, "");
+      const highlighted = highlightCode(trimmedCode, cleanLang);
+      return `<div class="code-block-card"><div class="code-block-header"><span class="code-lang">${escapeHtml(cleanLang)}</span><button type="button" class="copy-code-btn">Copy code</button></div><pre><code>${highlighted}</code></pre></div>`;
+    }
+
+    function formatInlineMarkdown(rawText) {
+      const codeSpans = [];
+      const withPlaceholders = String(rawText || "").replace(/`([^`\n]+)`/g, (_, inner) => {
+        const idx = codeSpans.length;
+        codeSpans.push(`<code>${escapeHtml(inner)}</code>`);
+        return `\u0000CODE${idx}\u0000`;
+      });
+
+      let html = escapeHtml(withPlaceholders);
+      html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      html = html.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+      html = html.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+
+      html = html.replace(/\u0000CODE(\d+)\u0000/g, (_, idx) => codeSpans[Number(idx)] || "");
+      return html;
+    }
+
+    function renderMarkdownSegment(segment) {
+      const lines = segment.replace(/\r\n?/g, "\n").split("\n");
+      const out = [];
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+          i++;
+          continue;
+        }
+
+        if (/^(?:---|\*\*\*|___)\s*$/.test(trimmed)) {
+          out.push("<hr>");
+          i++;
+          continue;
+        }
+
+        const hMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
+        if (hMatch) {
+          const level = hMatch[1].length;
+          out.push(`<h${level}>${formatInlineMarkdown(hMatch[2])}</h${level}>`);
+          i++;
+          continue;
+        }
+
+        if (/^>\s?/.test(trimmed)) {
+          const quoteLines = [];
+          while (i < lines.length && /^>\s?/.test(lines[i].trim())) {
+            quoteLines.push(formatInlineMarkdown(lines[i].trim().replace(/^>\s?/, "")));
+            i++;
+          }
+          out.push(`<blockquote>${quoteLines.join("<br>")}</blockquote>`);
+          continue;
+        }
+
+        if (trimmed.includes("|") && i + 1 < lines.length && /^\s*\|?\s*[-:]+(?:\s*\|\s*[-:]+)+\s*\|?\s*$/.test(lines[i + 1])) {
+          const parseRow = (rowLine) =>
+            rowLine.trim().replace(/^\||\|$/g, "").split("|").map((c) => formatInlineMarkdown(c.trim()));
+          const headers = parseRow(trimmed);
+          i += 2;
+          const rowsHtml = [];
+          while (i < lines.length && lines[i].trim().includes("|")) {
+            const cells = parseRow(lines[i]);
+            rowsHtml.push(`<tr>${cells.map((c) => `<td>${c}</td>`).join("")}</tr>`);
+            i++;
+          }
+          out.push(`<table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rowsHtml.join("")}</tbody></table>`);
+          continue;
+        }
+
+        if (/^\s*[-*•]\s+/.test(line)) {
+          const items = [];
+          while (i < lines.length && /^\s*[-*•]\s+/.test(lines[i])) {
+            items.push(`<li>${formatInlineMarkdown(lines[i].replace(/^\s*[-*•]\s+/, ""))}</li>`);
+            i++;
+          }
+          out.push(`<ul>${items.join("")}</ul>`);
+          continue;
+        }
+
+        if (/^\s*\d+[.)]\s+/.test(line)) {
+          const items = [];
+          while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) {
+            items.push(`<li>${formatInlineMarkdown(lines[i].replace(/^\s*\d+[.)]\s+/, ""))}</li>`);
+            i++;
+          }
+          out.push(`<ol>${items.join("")}</ol>`);
+          continue;
+        }
+
+        const paraLines = [];
+        while (
+          i < lines.length &&
+          lines[i].trim() &&
+          !/^(#{1,4}\s+|>\s?|---|\*\*\*|___|\s*[-*•]\s+|\s*\d+[.)]\s+)/.test(lines[i].trim())
+        ) {
+          paraLines.push(formatInlineMarkdown(lines[i].trim()));
+          i++;
+        }
+        if (paraLines.length) {
+          out.push(`<p>${paraLines.join("<br>")}</p>`);
+        }
+      }
+
+      return out.join("");
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return "";
+      const raw = String(text).replace(/\r\n?/g, "\n");
+      const out = [];
+      const fenceRegex = /```([a-zA-Z0-9_+#-]*)\n([\s\S]*?)```/g;
+      let lastIndex = 0;
+      let match;
+
+      while ((match = fenceRegex.exec(raw)) !== null) {
+        if (match.index > lastIndex) {
+          out.push(renderMarkdownSegment(raw.slice(lastIndex, match.index)));
+        }
+        out.push(renderCodeBlockCard(match[1], match[2]));
+        lastIndex = fenceRegex.lastIndex;
+      }
+
+      const tail = raw.slice(lastIndex);
+      if (tail) {
+        const unclosed = tail.match(/^([\s\S]*?)```([a-zA-Z0-9_+#-]*)\n([\s\S]*)$/);
+        if (unclosed) {
+          if (unclosed[1]) out.push(renderMarkdownSegment(unclosed[1]));
+          out.push(renderCodeBlockCard(unclosed[2], unclosed[3]));
+        } else {
+          out.push(renderMarkdownSegment(tail));
+        }
+      }
+
+      return out.join("");
+    }
+
+    chat.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".copy-code-btn");
+      if (!btn) return;
+      const card = btn.closest(".code-block-card");
+      const codeEl = card?.querySelector("pre code");
+      if (!codeEl) return;
+      try {
+        await navigator.clipboard.writeText(codeEl.textContent || "");
+        btn.textContent = "✓ Copied";
+        setTimeout(() => {
+          btn.textContent = "Copy code";
+        }, 1600);
+      } catch {
+        btn.textContent = "Copy failed";
+      }
+    });
+
+    // Handle provider selection
+    providerButtons.forEach((button) => {
+      button.addEventListener("click", async () => {
+        if (isGenerating) return;
+        selectProviderUiOnly(button.dataset.provider);
+        const label = providerLabel(selectedProvider);
+        status.textContent = `Opening ${label}...`;
+        updateBadge();
+
+        try {
+          const response = await authFetch("/api/open", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider: selectedProvider,
+              directApiMode,
+              apiKey: directApiMode ? getActiveKey() : ""
+            })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Could not open service.");
+          const browserTag = data.browserName || configuredBrowser || "Browser";
+          if (data.mode === "api") {
+            status.textContent = `${label} Direct API Mode ready.`;
+          } else if (data.browserMode === "cdp") {
+            status.textContent = `${label} opened in ${browserTag}. Prompts will stream live.`;
+          } else if (data.browserMode === "default-profile") {
+            status.textContent = `${label} opened in ${browserTag} (Default Profile).`;
+          } else if (data.browserMode === "cloud-headless") {
+            status.textContent = `${label} ready via ${browserTag}.`;
+          } else {
+            status.textContent = `${label} opened in ${browserTag} (AI Bridge profile).`;
+          }
+        } catch (error) {
+          status.textContent = `${label}: ${error.message}`;
+        }
+      });
+    });
+
+    function addBubble(text, type, provider) {
+      const el = document.createElement("div");
+      el.className = `bubble ${type}`;
+      if (type === "ai") {
+        el.innerHTML = `<div class="ai-header">${escapeHtml(provider || selectedProvider)}</div><div class="content">${formatMarkdown(text)}</div>`;
+      } else {
+        el.textContent = text;
+      }
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+      return el;
+    }
+
+    function autoResizeTextarea() {
+      input.style.height = "50px";
+      const nextHeight = Math.min(Math.max(input.scrollHeight, 50), 220);
+      input.style.height = `${nextHeight}px`;
+    }
+
+    function buildScreenContextForInput(extractedText, existingValue) {
+      const systemBlock = [
+        "[SYSTEM INSTRUCTION FOR SCREEN CONTENT]",
+        "",
+        "You are an AI assistant analyzing content extracted from the user's current screen.",
+        "",
+        "The following text was extracted from the currently visible screen using OCR:",
+        "",
+        "--- EXTRACTED SCREEN CONTENT ---",
+        extractedText,
+        "--- END OF SCREEN CONTENT ---",
+        "",
+        "Analyze the extracted content and understand its structure.",
+        "",
+        "If it contains a question or multiple-choice question, identify the question and evaluate all available answer options.",
+        "",
+        "If it contains educational content, understand the topic and answer questions based on the extracted information.",
+        "",
+        "Do not assume that every extracted screen contains a question. Handle articles, notes, code, presentations, and other content appropriately."
+      ].join("\n");
+
+      const rawExisting = (existingValue || "").trim();
+      if (!rawExisting) return systemBlock;
+
+      const userMarker = "[USER QUESTION / INSTRUCTION]";
+      const markerIdx = rawExisting.indexOf(userMarker);
+      if (rawExisting.includes("[SYSTEM INSTRUCTION FOR SCREEN CONTENT]")) {
+        if (markerIdx !== -1) {
+          const preservedUserPrompt = rawExisting.slice(markerIdx + userMarker.length).trim();
+          if (preservedUserPrompt) {
+            return `${systemBlock}\n\n${userMarker}\n${preservedUserPrompt}`;
+          }
+        }
+        return systemBlock;
+      }
+
+      return `${systemBlock}\n\n${userMarker}\n${rawExisting}`;
+    }
+
+    const captureFallbackBar = document.querySelector("#captureFallbackBar");
+    const screenFallbackGroup = document.querySelector("#screenFallbackGroup");
+    const audioFallbackGroup = document.querySelector("#audioFallbackGroup");
+    const fbUploadImgBtn = document.querySelector("#fbUploadImgBtn");
+    const fbBrowserTabBtn = document.querySelector("#fbBrowserTabBtn");
+    const fbUrlInput = document.querySelector("#fbUrlInput");
+    const fbReadUrlBtn = document.querySelector("#fbReadUrlBtn");
+    const fbUploadAudioBtn = document.querySelector("#fbUploadAudioBtn");
+    const fbCloseBtn = document.querySelector("#fbCloseBtn");
+    const ocrFileInput = document.querySelector("#ocrFileInput");
+    const audioFileInput = document.querySelector("#audioFileInput");
+
+    function showFallbackBar(mode) {
+      captureFallbackBar.classList.add("active");
+      screenFallbackGroup.classList.toggle("active", mode === "screen");
+      audioFallbackGroup.classList.toggle("active", mode === "audio");
+    }
+
+    function hideFallbackBar() {
+      captureFallbackBar.classList.remove("active");
+      screenFallbackGroup.classList.remove("active");
+      audioFallbackGroup.classList.remove("active");
+    }
+
+    fbCloseBtn.addEventListener("click", hideFallbackBar);
+
+    async function imageFileOrBlobToPngDataUrl(blob) {
+      const bitmapUrl = URL.createObjectURL(blob);
+      try {
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error("Could not decode image."));
+          img.src = bitmapUrl;
+        });
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL("image/png");
+        canvas.width = 0;
+        canvas.height = 0;
+        return dataUrl;
+      } finally {
+        URL.revokeObjectURL(bitmapUrl);
+      }
+    }
+
+    function applyOcrResultToInput(result) {
+      if (!result || !result.ok || !result.text) {
+        throw new Error(result?.error || "No readable text was extracted.");
+      }
+      input.value = buildScreenContextForInput(result.text, input.value);
+      autoResizeTextarea();
+      input.focus();
+      const confNote = typeof result.confidence === "number" ? ` · OCR confidence ${result.confidence}%` : "";
+      status.textContent = `Extracted ${result.charCount} chars (${result.lineCount} lines)${confNote}. Review and press Send.`;
+      hideFallbackBar();
+    }
+
+    async function runOcrOnImageBlob(blob) {
+      if (isReadingScreen) return;
+      isReadingScreen = true;
+      readScreenBtn.disabled = true;
+      readScreenIcon.innerHTML = `<span class="ocr-spinner"></span>`;
+      readScreenText.textContent = "Reading...";
+      status.textContent = "Running local Tesseract.js OCR on image...";
+      try {
+        const imageDataUrl = await imageFileOrBlobToPngDataUrl(blob);
+        const response = await authFetch("/api/ocr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageDataUrl })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Local OCR extraction failed.");
+        }
+        applyOcrResultToInput(data);
+      } catch (err) {
+        status.textContent = `⚠️ Read Screen: ${err?.message || "Failed to read image."}`;
+      } finally {
+        isReadingScreen = false;
+        readScreenBtn.disabled = false;
+        readScreenIcon.textContent = "📷";
+        readScreenText.textContent = "Read Screen";
+      }
+    }
+
+    async function runOcrCaptureEndpoint(payload) {
+      if (isReadingScreen) return;
+      isReadingScreen = true;
+      readScreenBtn.disabled = true;
+      readScreenIcon.innerHTML = `<span class="ocr-spinner"></span>`;
+      readScreenText.textContent = "Reading...";
+      status.textContent = payload.mode === "url"
+        ? `Capturing ${payload.url} & running local OCR...`
+        : "Capturing active Browser Bridge tab & running local OCR...";
+      try {
+        const response = await authFetch("/api/ocr-capture", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Could not capture page for OCR.");
+        }
+        applyOcrResultToInput(data);
+      } catch (err) {
+        status.textContent = `⚠️ Read Screen: ${err?.message || "Capture failed."}`;
+      } finally {
+        isReadingScreen = false;
+        readScreenBtn.disabled = false;
+        readScreenIcon.textContent = "📷";
+        readScreenText.textContent = "Read Screen";
+      }
+    }
+
+    fbUploadImgBtn.addEventListener("click", () => ocrFileInput.click());
+    ocrFileInput.addEventListener("change", async () => {
+      const file = ocrFileInput.files?.[0];
+      ocrFileInput.value = "";
+      if (file) await runOcrOnImageBlob(file);
+    });
+    fbBrowserTabBtn.addEventListener("click", () => runOcrCaptureEndpoint({ mode: "active-tab" }));
+    fbReadUrlBtn.addEventListener("click", () => {
+      const url = fbUrlInput.value.trim();
+      if (!url) {
+        status.textContent = "⚠️ Enter an http:// or https:// URL to read.";
+        fbUrlInput.focus();
+        return;
+      }
+      runOcrCaptureEndpoint({ mode: "url", url });
+    });
+
+    document.addEventListener("paste", async (e) => {
+      if (!currentUser || workspaceView.classList.contains("view-hidden")) return;
+      const items = [...(e.clipboardData?.items || [])];
+      const imgItem = items.find((item) => item.type && item.type.startsWith("image/"));
+      if (!imgItem) return;
+      const blob = imgItem.getAsFile();
+      if (blob) {
+        e.preventDefault();
+        await runOcrOnImageBlob(blob);
+      }
+    });
+
+    async function captureScreenInBrowserFallback() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        const err = new Error("Display capture is unavailable in this embedded preview.");
+        err.code = "DISPLAY_CAPTURE_BLOCKED";
+        throw err;
+      }
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { cursor: "never" },
+          audio: false
+        });
+      } catch (err) {
+        if (err && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError" || err.name === "SecurityError")) {
+          const wrapped = new Error("Display capture was blocked or cancelled in preview.");
+          wrapped.code = "DISPLAY_CAPTURE_BLOCKED";
+          throw wrapped;
+        }
+        throw new Error(err?.message || "Could not start browser screen capture.");
+      }
+
+      try {
+        const video = document.createElement("video");
+        video.srcObject = stream;
+        video.muted = true;
+        await video.play();
+        await new Promise((r) => setTimeout(r, 120));
+
+        const width = video.videoWidth || 1280;
+        const height = video.videoHeight || 720;
+        if (!width || !height) {
+          throw new Error("Captured screen video stream had zero dimensions.");
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, width, height);
+        const imageDataUrl = canvas.toDataURL("image/png");
+
+        video.pause();
+        video.srcObject = null;
+        canvas.width = 0;
+        canvas.height = 0;
+
+        status.textContent = "Running local OCR on captured screen...";
+        const response = await authFetch("/api/ocr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageDataUrl })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Local OCR extraction failed.");
+        }
+        return data;
+      } finally {
+        if (stream) stream.getTracks().forEach((track) => track.stop());
+      }
+    }
+
+    readScreenBtn.addEventListener("click", async () => {
+      if (isReadingScreen) return;
+      isReadingScreen = true;
+      readScreenBtn.disabled = true;
+      readScreenIcon.innerHTML = `<span class="ocr-spinner"></span>`;
+      readScreenText.textContent = "Reading...";
+
+      try {
+        let result;
+        if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.readScreen === "function") {
+          status.textContent = "Hiding floating window, capturing screen, and running local OCR...";
+          result = await window.aiBridgeDesktop.readScreen();
+        } else {
+          status.textContent = "Select a screen or window to read via local OCR...";
+          result = await captureScreenInBrowserFallback();
+        }
+        applyOcrResultToInput(result);
+      } catch (err) {
+        if (err?.code === "DISPLAY_CAPTURE_BLOCKED") {
+          showFallbackBar("screen");
+          status.textContent = "⚠️ Browser preview blocks screen sharing — paste a screenshot (Ctrl+V), upload an image, or read Browser Tab / URL below.";
+        } else {
+          status.textContent = `⚠️ Read Screen: ${err?.message || "Failed to read screen."}`;
+        }
+      } finally {
+        isReadingScreen = false;
+        readScreenBtn.disabled = false;
+        readScreenIcon.textContent = "📷";
+        readScreenText.textContent = "Read Screen";
+      }
+    });
+
+    // ----------------- LISTEN (System Speaker Audio -> Fast Voice-to-Text) -----------------
+    function downsampleFloat32ToInt16(float32Input, inputRate, targetRate = 16000) {
+      if (!float32Input || !float32Input.length) return new Int16Array(0);
+      if (inputRate === targetRate) {
+        const out = new Int16Array(float32Input.length);
+        for (let i = 0; i < float32Input.length; i++) {
+          const s = Math.max(-1, Math.min(1, float32Input[i]));
+          out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+        }
+        return out;
+      }
+      const ratio = inputRate / targetRate;
+      const outLen = Math.max(1, Math.floor(float32Input.length / ratio));
+      const out = new Int16Array(outLen);
+      for (let i = 0; i < outLen; i++) {
+        const pos = i * ratio;
+        const idx = Math.floor(pos);
+        const frac = pos - idx;
+        const s0 = float32Input[idx] || 0;
+        const s1 = float32Input[Math.min(float32Input.length - 1, idx + 1)] || s0;
+        const sample = Math.max(-1, Math.min(1, s0 + (s1 - s0) * frac));
+        out[i] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+      }
+      return out;
+    }
+
+    function concatInt16Chunks(chunks) {
+      let total = 0;
+      for (const c of chunks) total += c.length;
+      const merged = new Int16Array(total);
+      let offset = 0;
+      for (const c of chunks) {
+        merged.set(c, offset);
+        offset += c.length;
+      }
+      return merged;
+    }
+
+    function combineListenText(prefix, committed, interim) {
+      const voicePart = [committed, interim].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      if (!prefix) return voicePart;
+      if (!voicePart) return prefix;
+      const sep = prefix.endsWith("\n") || prefix.endsWith(" ") ? "" : " ";
+      return `${prefix}${sep}${voicePart}`;
+    }
+
+    function resetListenUi() {
+      isListening = false;
+      listenBtn.disabled = false;
+      listenBtn.classList.remove("listening");
+      listenIcon.textContent = "🎧";
+      listenText.textContent = "Listen";
+    }
+
+    async function transcribeViaHttpFallback(int16Arr) {
+      const resp = await authFetch("/api/transcribe-pcm", {
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream" },
+        body: int16Arr.buffer
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (resp.ok && data.ok && data.text) return data.text;
+      return "";
+    }
+
+    async function stopListening() {
+      if (!listenState) {
+        resetListenUi();
+        return;
+      }
+
+      const st = listenState;
+      if (st.stopping) return;
+      st.stopping = true;
+      listenBtn.disabled = true;
+      listenText.textContent = "Finishing...";
+      status.textContent = "Finalizing speech transcription...";
+
+      try {
+        if (st.engine === "local-whisper" && st.utteranceChunks.length > 0) {
+          await st.flushUtterance();
+        }
+      } catch {}
+
+      try {
+        if (st.processor) st.processor.disconnect();
+        if (st.source) st.source.disconnect();
+        if (st.silentGain) st.silentGain.disconnect();
+        if (st.audioCtx && st.audioCtx.state !== "closed") await st.audioCtx.close();
+      } catch {}
+
+      try {
+        if (st.stream) st.stream.getTracks().forEach((t) => t.stop());
+      } catch {}
+
+      if (st.ws && st.ws.readyState === WebSocket.OPEN) {
+        await new Promise((resolve) => {
+          let done = false;
+          const finish = () => {
+            if (done) return;
+            done = true;
+            resolve();
+          };
+          st.onStoppedCallback = finish;
+          try {
+            st.ws.send(JSON.stringify({ type: "stop" }));
+          } catch {
+            finish();
+          }
+          setTimeout(finish, 3000);
+        });
+      }
+
+      try {
+        if (st.httpQueue) await st.httpQueue;
+      } catch {}
+
+      try {
+        if (st.ws && st.ws.readyState <= WebSocket.OPEN) st.ws.close();
+      } catch {}
+
+      if (st.interimTranscript) {
+        st.committedTranscript = [st.committedTranscript, st.interimTranscript]
+          .filter(Boolean)
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+        st.interimTranscript = "";
+        input.value = combineListenText(st.prefixText, st.committedTranscript, "");
+        autoResizeTextarea();
+      }
+
+      const finalWords = st.committedTranscript.trim();
+      listenState = null;
+      resetListenUi();
+      input.focus();
+
+      if (finalWords) {
+        status.textContent = `Transcribed speech (${finalWords.length} chars) into input box. Review and press Send.`;
+      } else {
+        status.textContent = "Stopped listening (no speech detected in system audio).";
+      }
+    }
+
+    async function transcribeAudioFile(file) {
+      listenBtn.disabled = true;
+      listenText.textContent = "Transcribing...";
+      status.textContent = "Decoding audio clip & transcribing speech...";
+      try {
+        const arrBuf = await file.arrayBuffer();
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioCtx();
+        const decoded = await audioCtx.decodeAudioData(arrBuf);
+        const channelData = decoded.getChannelData(0);
+        const pcm16 = downsampleFloat32ToInt16(channelData, decoded.sampleRate, 16000);
+        await audioCtx.close().catch(() => {});
+
+        const text = await transcribeViaHttpFallback(pcm16);
+        if (!text) {
+          status.textContent = "⚠️ No speech detected in the selected audio file.";
+          return;
+        }
+        const prefix = input.value.trim();
+        input.value = combineListenText(prefix, text, "");
+        autoResizeTextarea();
+        input.focus();
+        hideFallbackBar();
+        status.textContent = `Transcribed speech (${text.length} chars) into input box. Review and press Send.`;
+      } catch (err) {
+        status.textContent = `⚠️ Audio file transcription failed: ${err?.message || "Unsupported audio file."}`;
+      } finally {
+        resetListenUi();
+      }
+    }
+
+    fbUploadAudioBtn.addEventListener("click", () => audioFileInput.click());
+    audioFileInput.addEventListener("change", async () => {
+      const file = audioFileInput.files?.[0];
+      audioFileInput.value = "";
+      if (file) await transcribeAudioFile(file);
+    });
+
+    async function startListening() {
+      if (isListening) {
+        await stopListening();
+        return;
+      }
+
+      if (!navigator.mediaDevices || typeof navigator.mediaDevices.getDisplayMedia !== "function") {
+        showFallbackBar("audio");
+        status.textContent = "⚠️ System speaker capture is unavailable inside this embedded preview — open in a top-level window (↗) or Electron app (mic is never used).";
+        return;
+      }
+
+      listenBtn.disabled = true;
+      listenText.textContent = "Connecting...";
+
+      let stream = null;
+      status.textContent = "Select the Meet tab or Entire Screen with 'Share audio' ON (system speaker only, no mic)...";
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            suppressLocalAudioPlayback: false
+          },
+          systemAudio: "include",
+          preferCurrentTab: false
+        });
+      } catch (err) {
+        resetListenUi();
+        const blocked = err && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError" || err.name === "SecurityError" || err.name === "NotSupportedError");
+        if (blocked) {
+          showFallbackBar("audio");
+          const inIframe = window.self !== window.top;
+          status.textContent = inIframe
+            ? "⚠️ Preview iframe blocks system audio capture — click 'Open Top-Level Window ↗' below (or use Electron) to capture live Meet speaker audio without mic."
+            : "⚠️ System speaker capture was cancelled or blocked. Click Listen again and pick the Meet tab or screen with 'Share audio' checked.";
+        } else {
+          status.textContent = `⚠️ Listen: ${err?.message || "Could not capture system speaker audio."}`;
+        }
+        return;
+      }
+
+      stream.getVideoTracks().forEach((t) => t.stop());
+      const audioTracks = stream.getAudioTracks();
+      if (!audioTracks || audioTracks.length === 0) {
+        stream.getTracks().forEach((t) => t.stop());
+        resetListenUi();
+        showFallbackBar("audio");
+        status.textContent = "⚠️ No system audio track shared! Re-click Listen, pick the Meet tab or Entire Screen, and turn ON 'Share audio'.";
+        return;
+      }
+      hideFallbackBar();
+
+      const st = {
+        stream,
+        audioCtx: null,
+        source: null,
+        processor: null,
+        silentGain: null,
+        ws: null,
+        engine: "local-whisper",
+        prefixText: input.value.trim(),
+        committedTranscript: "",
+        interimTranscript: "",
+        preRollChunks: [],
+        utteranceChunks: [],
+        inSpeech: false,
+        silenceMs: 0,
+        utteranceMs: 0,
+        stopping: false,
+        httpQueue: Promise.resolve(),
+        onStoppedCallback: null,
+        flushUtterance: null
+      };
+      listenState = st;
+
+      const applyTranscriptChunk = (text, isInterim) => {
+        const clean = String(text || "").trim();
+        if (!clean) return;
+        if (isInterim) {
+          st.interimTranscript = clean;
+        } else {
+          st.committedTranscript = [st.committedTranscript, clean]
+            .filter(Boolean)
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim();
+          st.interimTranscript = "";
+        }
+        input.value = combineListenText(st.prefixText, st.committedTranscript, st.interimTranscript);
+        autoResizeTextarea();
+      };
+
+      const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+      const tok = getAuthToken();
+      const wsUrl = `${wsProto}//${location.host}/ws/listen${tok ? `?token=${encodeURIComponent(tok)}` : ""}`;
+      try {
+        const ws = new WebSocket(wsUrl);
+        ws.binaryType = "arraybuffer";
+        st.ws = ws;
+
+        await new Promise((resolve) => {
+          let settled = false;
+          const done = () => {
+            if (settled) return;
+            settled = true;
+            resolve();
+          };
+          ws.onopen = done;
+          ws.onerror = done;
+          setTimeout(done, 1500);
+        });
+
+        ws.onmessage = (evt) => {
+          try {
+            const msg = JSON.parse(evt.data);
+            if (msg.type === "ready") {
+              st.engine = msg.engine || "local-whisper";
+              if (!st.stopping) {
+                status.textContent = `Listening to system speaker audio (${msg.label || st.engine})...`;
+              }
+            } else if (msg.type === "interim" && msg.text) {
+              applyTranscriptChunk(msg.text, true);
+            } else if (msg.type === "transcript" && msg.text) {
+              applyTranscriptChunk(msg.text, false);
+              if (!st.stopping) {
+                status.textContent = `Listening (${msg.durationMs ? `${msg.durationMs}ms` : "live"}) — speech captured into input`;
+              }
+            } else if (msg.type === "stopped") {
+              if (st.onStoppedCallback) st.onStoppedCallback();
+            } else if (msg.type === "error" && msg.error) {
+              status.textContent = `⚠️ Listen: ${msg.error}`;
+            }
+          } catch {}
+        };
+      } catch {
+        st.ws = null;
+      }
+
+      st.flushUtterance = async () => {
+        if (!st.utteranceChunks.length) return;
+        const merged = concatInt16Chunks(st.utteranceChunks);
+        st.utteranceChunks = [];
+        st.inSpeech = false;
+        st.silenceMs = 0;
+        st.utteranceMs = 0;
+
+        if (merged.length < 2400) return;
+
+        if (st.ws && st.ws.readyState === WebSocket.OPEN) {
+          st.ws.send(merged.buffer);
+        } else {
+          st.httpQueue = st.httpQueue.then(async () => {
+            const text = await transcribeViaHttpFallback(merged);
+            if (text) applyTranscriptChunk(text, false);
+          });
+        }
+      };
+
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioCtx();
+        if (audioCtx.state === "suspended") await audioCtx.resume();
+        st.audioCtx = audioCtx;
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+        const silentGain = audioCtx.createGain();
+        silentGain.gain.value = 0;
+
+        source.connect(processor);
+        processor.connect(silentGain);
+        silentGain.connect(audioCtx.destination);
+
+        st.source = source;
+        st.processor = processor;
+        st.silentGain = silentGain;
+
+        const chunkDurationMs = (4096 / audioCtx.sampleRate) * 1000;
+        const SPEECH_RMS_THRESHOLD = 0.008;
+        const PAUSE_FLUSH_MS = 420;
+        const MAX_UTTERANCE_MS = 4500;
+
+        processor.onaudioprocess = (event) => {
+          if (st.stopping) return;
+          const samples = event.inputBuffer.getChannelData(0);
+          const pcm16 = downsampleFloat32ToInt16(samples, audioCtx.sampleRate, 16000);
+
+          if (st.engine === "gemini-live" && st.ws && st.ws.readyState === WebSocket.OPEN) {
+            st.ws.send(pcm16.buffer);
+            return;
+          }
+
+          let sumSq = 0;
+          for (let i = 0; i < samples.length; i++) sumSq += samples[i] * samples[i];
+          const rms = Math.sqrt(sumSq / samples.length);
+
+          if (rms >= SPEECH_RMS_THRESHOLD) {
+            if (!st.inSpeech && st.preRollChunks.length > 0) {
+              st.utteranceChunks.push(...st.preRollChunks);
+              st.preRollChunks = [];
+            }
+            st.inSpeech = true;
+            st.silenceMs = 0;
+            st.utteranceChunks.push(pcm16);
+            st.utteranceMs += chunkDurationMs;
+          } else if (st.inSpeech) {
+            st.utteranceChunks.push(pcm16);
+            st.silenceMs += chunkDurationMs;
+            st.utteranceMs += chunkDurationMs;
+            if (st.silenceMs >= PAUSE_FLUSH_MS) st.flushUtterance();
+          } else {
+            st.preRollChunks.push(pcm16);
+            if (st.preRollChunks.length > 3) st.preRollChunks.shift();
+          }
+
+          if (st.inSpeech && st.utteranceMs >= MAX_UTTERANCE_MS) {
+            st.flushUtterance();
+          }
+        };
+
+        audioTracks[0].onended = () => {
+          if (isListening) stopListening();
+        };
+
+        isListening = true;
+        listenBtn.disabled = false;
+        listenBtn.classList.add("listening");
+        listenIcon.innerHTML = `<span class="listen-dot"></span>`;
+        listenText.textContent = "Stop";
+        status.textContent = "Listening to system speaker audio (opponent voice only) — speech appears in input box...";
+      } catch (err) {
+        await stopListening();
+        status.textContent = `⚠️ Listen audio setup failed: ${err?.message || "Unknown error."}`;
+      }
+    }
+
+    listenBtn.addEventListener("click", startListening);
+
+    input.addEventListener("input", autoResizeTextarea);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    // Handle form submit with REAL-TIME STREAMING + MongoDB History Persistence
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (isGenerating) {
+        if (activeAbortController) activeAbortController.abort();
+        return;
+      }
+
+      if (!currentUser) {
+        switchAuthPanel("login");
+        return;
+      }
+
+      const message = input.value.trim();
+      if (!message) return;
+
+      if (directApiMode && !hasApiKeyForSelected()) {
+        setRightMenuOpen(true);
+        renderDirectApiState();
+        const label = providerLabel(selectedProvider);
+        const configuredCallable = getConfiguredProviders(userApiKeys).filter((p) => p !== "duckai");
+        const hintMsg = configuredCallable.length > 0
+          ? `No API key is saved for ${label}. Enter a ${label} API key in the right menu, switch to a model with a saved key (${configuredCallable.map(providerLabel).join(", ")}), or turn off Direct API for Browser Bridge.`
+          : `No user API key is configured. Add your own API key in the right menu to receive Direct API responses (we do not provide central API keys), or turn off Direct API for Browser Bridge.`;
+        status.textContent = `⚠️ ${hintMsg}`;
+        addBubble(`⚠️ **API Key Required:** ${hintMsg}`, "ai", "AI Bridge");
+        return;
+      }
+
+      if (listenState && !listenState.stopping) {
+        listenState.prefixText = "";
+        listenState.committedTranscript = "";
+        listenState.interimTranscript = "";
+      }
+
+      addBubble(message, "user");
+      input.value = "";
+      autoResizeTextarea();
+      isGenerating = true;
+      sendText.textContent = "Stop";
+      sendBtn.classList.add("stop-btn");
+
+      const provider = selectedProvider;
+      const label = providerLabel(provider);
+      status.textContent = `${label} is thinking...`;
+
+      const aiBubble = addBubble("", "ai", label);
+      const contentEl = aiBubble.querySelector(".content");
+      contentEl.innerHTML = `<span class="cursor-blink"></span>`;
+
+      activeAbortController = new AbortController();
+
+      try {
+        const response = await authFetch("/api/chat/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message,
+            provider,
+            directApiMode,
+            interviewMode,
+            customTemplate,
+            chatId: activeChatId,
+            apiKey: directApiMode ? getActiveKey() : ""
+          }),
+          signal: activeAbortController.signal
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            switchAuthPanel("login");
+            showAuthAlert("error", errData.error || "Session expired. Please sign in again.");
+            return;
+          }
+          throw new Error(errData.error || `Server responded with ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let fullText = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop();
+
+          for (const part of parts) {
+            const line = part.replace(/^data:\s*/, "").trim();
+            if (!line) continue;
+            try {
+              const data = JSON.parse(line);
+              if (data.type === "chat" && data.chatId) {
+                activeChatId = data.chatId;
+                loadUserChats();
+              } else if (data.type === "info" && data.text) {
+                status.textContent = data.text;
+              } else if (data.type === "chunk" && data.text) {
+                fullText = data.text;
+                contentEl.innerHTML = formatMarkdown(fullText) + `<span class="cursor-blink"></span>`;
+                status.textContent = `${label} is typing...`;
+                chat.scrollTop = chat.scrollHeight;
+              } else if (data.type === "done" && data.text) {
+                fullText = data.text;
+                if (data.chatId) activeChatId = data.chatId;
+                contentEl.innerHTML = formatMarkdown(fullText);
+                status.textContent = `${label} completed response.`;
+                chat.scrollTop = chat.scrollHeight;
+                loadUserChats();
+              } else if (data.type === "error") {
+                throw new Error(data.error);
+              }
+            } catch (pErr) {
+              if (pErr.message && !pErr.message.includes("JSON")) throw pErr;
+            }
+          }
+        }
+
+        if (fullText) {
+          contentEl.innerHTML = formatMarkdown(fullText);
+        }
+      } catch (error) {
+        if (error.name === "AbortError") {
+          contentEl.innerHTML += `<br><em>[Generation stopped by user]</em>`;
+          status.textContent = "Stopped.";
+        } else {
+          contentEl.innerHTML = `<span style="color: #f87171;">⚠️ ${escapeHtml(error.message)}</span>`;
+          status.textContent = `Error with ${label}. Check browser window.`;
+        }
+      } finally {
+        isGenerating = false;
+        activeAbortController = null;
+        sendText.textContent = "Send";
+        sendBtn.classList.remove("stop-btn");
+        input.focus();
+      }
+    });
+
+    // ----------------- APP BOOTSTRAP -----------------
+    async function bootstrapApp() {
+      const params = new URLSearchParams(window.location.search);
+      const resetToken = params.get("resetToken");
+      if (resetToken) {
+        await openResetPasswordWithToken(resetToken);
+        return;
+      }
+
+      try {
+        const res = await authFetch("/api/auth/me");
+        const data = await res.json().catch(() => ({}));
+        if (data.authenticated && data.user) {
+          currentUser = data.user;
+        }
+      } catch {}
+
+      updateLandingHeaderAuthState();
+      // Always start on the Landing / Overview page when visiting "/" so the user sees app details + Get Started button
+      showView("landing");
+    }
+
+    bootstrapApp();
+  </script>
+</body>
+</html>

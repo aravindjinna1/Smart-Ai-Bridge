@@ -44,6 +44,20 @@ const {
   saveUserTemplateSettings,
   buildPersonalizedProfileBlock
 } = require("./template-service");
+const {
+  listUserBookmarks,
+  createUserBookmark,
+  deleteUserBookmark
+} = require("./bookmarks-service");
+const {
+  ANSWER_STYLES,
+  getAnswerStylePreset,
+  buildResumeAndJdBlock,
+  buildConversationContextBlock,
+  buildTeleprompterInstruction,
+  getFallbackProviderOrder,
+  buildMockQuizPromptFromBookmarks
+} = require("./interview-helpers");
 
 const GEMINI_URL = "https://gemini.google.com/app";
 const CHATGPT_URL = "https://chatgpt.com/";
@@ -184,7 +198,7 @@ app.use((req, res, next) => {
   res.setHeader("Permissions-Policy", "display-capture=*");
   next();
 });
-app.use(express.json());
+app.use(express.json({ limit: "12mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 let browser;
@@ -732,8 +746,15 @@ function formatApiError(providerName, err) {
   return `${providerName} API error: ${raw}`;
 }
 
-// Direct API Streaming helpers
-async function streamDirectGemini(apiKey, question, res) {
+function parseImageDataUrl(imageDataUrl) {
+  const raw = String(imageDataUrl || "").trim();
+  const match = raw.match(/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) return null;
+  return { mimeType: match[1], base64: match[2], dataUrl: raw };
+}
+
+// Direct API Streaming helpers (with optional multimodal Vision image support)
+async function streamDirectGemini(apiKey, question, res, imageDataUrl = "") {
   const ai = new GoogleGenAI({
     apiKey,
     httpOptions: {
@@ -743,9 +764,19 @@ async function streamDirectGemini(apiKey, question, res) {
     }
   });
 
+  const parsedImg = parseImageDataUrl(imageDataUrl);
+  const contents = parsedImg
+    ? {
+        parts: [
+          { inlineData: { mimeType: parsedImg.mimeType, data: parsedImg.base64 } },
+          { text: question }
+        ]
+      }
+    : question;
+
   const responseStream = await ai.models.generateContentStream({
     model: "gemini-4-hydrogen",
-    contents: question
+    contents
   });
 
   let fullText = "";
@@ -760,7 +791,15 @@ async function streamDirectGemini(apiKey, question, res) {
   return fullText;
 }
 
-async function streamDirectOpenAICompatible(endpoint, model, providerName, apiKey, question, res) {
+async function streamDirectOpenAICompatible(endpoint, model, providerName, apiKey, question, res, imageDataUrl = "") {
+  const parsedImg = parseImageDataUrl(imageDataUrl);
+  const userContent = parsedImg && providerName === "OpenAI"
+    ? [
+        { type: "text", text: question },
+        { type: "image_url", image_url: { url: parsedImg.dataUrl } }
+      ]
+    : question;
+
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -769,7 +808,7 @@ async function streamDirectOpenAICompatible(endpoint, model, providerName, apiKe
     },
     body: JSON.stringify({
       model,
-      messages: [{ role: "user", content: question }],
+      messages: [{ role: "user", content: userContent }],
       stream: true
     })
   });
@@ -805,14 +844,15 @@ async function streamDirectOpenAICompatible(endpoint, model, providerName, apiKe
   return fullText;
 }
 
-async function streamDirectOpenAI(apiKey, question, res) {
+async function streamDirectOpenAI(apiKey, question, res, imageDataUrl = "") {
   return streamDirectOpenAICompatible(
     "https://api.openai.com/v1/chat/completions",
     "gpt-4o-mini",
     "OpenAI",
     apiKey,
     question,
-    res
+    res,
+    imageDataUrl
   );
 }
 
@@ -863,7 +903,18 @@ async function streamDirectDeepAI(apiKey, question, res) {
   return fullText;
 }
 
-async function streamDirectClaude(apiKey, question, res) {
+async function streamDirectClaude(apiKey, question, res, imageDataUrl = "") {
+  const parsedImg = parseImageDataUrl(imageDataUrl);
+  const content = parsedImg
+    ? [
+        {
+          type: "image",
+          source: { type: "base64", media_type: parsedImg.mimeType, data: parsedImg.base64 }
+        },
+        { type: "text", text: question }
+      ]
+    : question;
+
   const url = "https://api.anthropic.com/v1/messages";
   const response = await fetch(url, {
     method: "POST",
@@ -875,7 +926,7 @@ async function streamDirectClaude(apiKey, question, res) {
     body: JSON.stringify({
       model: "claude-3-5-haiku-latest",
       max_tokens: 2048,
-      messages: [{ role: "user", content: question }],
+      messages: [{ role: "user", content }],
       stream: true
     })
   });
@@ -910,13 +961,13 @@ async function streamDirectClaude(apiKey, question, res) {
   return fullText;
 }
 
-async function runDirectApiProvider(providerKey, apiKey, question, res) {
-  if (providerKey === "gemini") return streamDirectGemini(apiKey, question, res);
+async function runDirectApiProvider(providerKey, apiKey, question, res, imageDataUrl = "") {
+  if (providerKey === "gemini") return streamDirectGemini(apiKey, question, res, imageDataUrl);
   if (providerKey === "deepai") return streamDirectDeepAI(apiKey, question, res);
-  if (providerKey === "chatgpt") return streamDirectOpenAI(apiKey, question, res);
+  if (providerKey === "chatgpt") return streamDirectOpenAI(apiKey, question, res, imageDataUrl);
   if (providerKey === "deepseek") return streamDirectDeepSeek(apiKey, question, res);
   if (providerKey === "perplexity") return streamDirectPerplexity(apiKey, question, res);
-  if (providerKey === "claude") return streamDirectClaude(apiKey, question, res);
+  if (providerKey === "claude") return streamDirectClaude(apiKey, question, res, imageDataUrl);
   if (providerKey === "duckai") {
     throw new Error("Duck.ai does not provide an external public REST API key endpoint. Switch off Direct API to use Duck.ai in Browser Bridge mode, or select a model with your saved API key.");
   }
@@ -1099,26 +1150,109 @@ app.delete("/api/chats/:id", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/api/bookmarks", requireAuth, async (req, res) => {
+  try {
+    const bookmarks = await listUserBookmarks(req.user.userId);
+    res.json({ ok: true, bookmarks });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message || "Could not load bookmarks." });
+  }
+});
+
+app.post("/api/bookmarks", requireAuth, async (req, res) => {
+  try {
+    const bookmark = await createUserBookmark({
+      userId: req.user.userId,
+      chatId: req.body?.chatId,
+      question: req.body?.question,
+      answer: req.body?.answer,
+      provider: req.body?.provider,
+      answerStyle: req.body?.answerStyle,
+      topic: req.body?.topic,
+      notes: req.body?.notes
+    });
+    res.status(201).json({ ok: true, bookmark });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message || "Could not save bookmark." });
+  }
+});
+
+app.delete("/api/bookmarks/:id", requireAuth, async (req, res) => {
+  try {
+    const deleted = await deleteUserBookmark({
+      userId: req.user.userId,
+      bookmarkId: req.params.id
+    });
+    if (!deleted) return res.status(404).json({ ok: false, error: "Bookmark not found." });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message || "Could not delete bookmark." });
+  }
+});
+
+app.post("/api/bookmarks/quiz", requireAuth, async (req, res) => {
+  try {
+    const [bookmarks, profile] = await Promise.all([
+      listUserBookmarks(req.user.userId),
+      getUserTemplateSettings(req.user.userId)
+    ]);
+    if (!bookmarks.length) {
+      return res.status(400).json({
+        ok: false,
+        error: "Bookmark at least one tough question first to generate a mock quiz."
+      });
+    }
+    const quizPrompt = buildMockQuizPromptFromBookmarks(bookmarks, profile);
+    res.json({ ok: true, quizPrompt, bookmarkCount: bookmarks.length });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message || "Could not generate mock quiz prompt." });
+  }
+});
+
 // ----------------- API Endpoints -----------------
 
 function buildFinalPrompt(rawQuestion, options = {}) {
   const screenEnriched = enrichScreenPrompt(rawQuestion);
   const interviewMode = options.interviewMode !== false;
-  if (!interviewMode) return screenEnriched;
+  const contextBlock = options.contextWindowEnabled !== false
+    ? buildConversationContextBlock(options.recentMessages || [], 3, 2400)
+    : "";
 
-  const profileBlock = buildPersonalizedProfileBlock(options.profile || {});
+  if (!interviewMode) {
+    return [contextBlock, screenEnriched].filter(Boolean).join("\n\n");
+  }
+
+  const profile = options.profile || {};
+  const profileBlock = buildPersonalizedProfileBlock(profile);
+  const resumeJdBlock = buildResumeAndJdBlock(profile);
+  const teleprompterBlock = buildTeleprompterInstruction(Boolean(options.teleprompterMode));
 
   // Keep Read Screen MCQ formatting priority intact if screen OCR content is present
   if (screenEnriched.includes("[MULTIPLE-CHOICE & ACCURACY GUIDELINES]")) {
     return [
       screenEnriched,
       profileBlock,
+      resumeJdBlock,
+      contextBlock,
+      teleprompterBlock,
       "[DELIVERY STYLE]\nUse clear, simple, interview-ready English with clean Markdown headings, bullets, and code blocks where helpful."
     ].filter(Boolean).join("\n\n");
   }
 
-  const template = String(options.customTemplate || "").trim() || DEFAULT_INTERVIEW_TEMPLATE;
-  return [template, profileBlock, `Question:\n${screenEnriched}`].filter(Boolean).join("\n\n");
+  const answerStyle = String(options.answerStyle || "deep_technical").trim().toLowerCase();
+  const preset = getAnswerStylePreset(answerStyle);
+  const template = answerStyle === "deep_technical"
+    ? (String(options.customTemplate || "").trim() || DEFAULT_INTERVIEW_TEMPLATE)
+    : preset.instruction;
+
+  return [
+    template,
+    profileBlock,
+    resumeJdBlock,
+    teleprompterBlock,
+    contextBlock,
+    `Question:\n${screenEnriched}`
+  ].filter(Boolean).join("\n\n");
 }
 
 // Per-user API Keys, Personalized Interview Profile & Template Settings endpoint (MongoDB backed)
@@ -1131,6 +1265,12 @@ app.get("/api/settings", requireAuth, async (req, res) => {
     res.json({
       apiKeys: userKeys,
       templateSettings,
+      answerStyles: Object.values(ANSWER_STYLES).map(({ id, label, shortLabel, description }) => ({
+        id,
+        label,
+        shortLabel,
+        description
+      })),
       geminiKeySet: Boolean(userKeys.gemini),
       deepaiKeySet: Boolean(userKeys.deepai),
       chatgptKeySet: Boolean(userKeys.chatgpt),
@@ -1178,15 +1318,15 @@ app.post("/api/settings", requireAuth, async (req, res) => {
       savedKeys = await getUserApiKeys(req.user.userId);
     }
 
+    const templateFieldKeys = [
+      "role", "experience", "techStack", "companyName", "keyDetails",
+      "resumeText", "jobDescription", "customTemplate", "answerStyle",
+      "interviewMode", "autoSendOnSilence", "contextWindowEnabled",
+      "teleprompterMode", "autoFallbackEnabled", "regionSelectBeforeOcr", "compactMode"
+    ];
     const hasTemplateUpdate = Boolean(
       (body.templateSettings && typeof body.templateSettings === "object") ||
-      body.role !== undefined ||
-      body.experience !== undefined ||
-      body.techStack !== undefined ||
-      body.companyName !== undefined ||
-      body.keyDetails !== undefined ||
-      body.customTemplate !== undefined ||
-      body.interviewMode !== undefined
+      templateFieldKeys.some((k) => body[k] !== undefined)
     );
 
     let savedTemplate = null;
@@ -1194,13 +1334,9 @@ app.post("/api/settings", requireAuth, async (req, res) => {
       const incomingTpl = body.templateSettings && typeof body.templateSettings === "object"
         ? { ...body.templateSettings }
         : {};
-      if (body.role !== undefined) incomingTpl.role = body.role;
-      if (body.experience !== undefined) incomingTpl.experience = body.experience;
-      if (body.techStack !== undefined) incomingTpl.techStack = body.techStack;
-      if (body.companyName !== undefined) incomingTpl.companyName = body.companyName;
-      if (body.keyDetails !== undefined) incomingTpl.keyDetails = body.keyDetails;
-      if (body.customTemplate !== undefined) incomingTpl.customTemplate = body.customTemplate;
-      if (body.interviewMode !== undefined) incomingTpl.interviewMode = body.interviewMode;
+      for (const k of templateFieldKeys) {
+        if (body[k] !== undefined) incomingTpl[k] = body[k];
+      }
       savedTemplate = await saveUserTemplateSettings(req.user.userId, incomingTpl);
     } else {
       savedTemplate = await getUserTemplateSettings(req.user.userId);
@@ -1390,34 +1526,147 @@ app.post("/api/transcribe-pcm", requireAuth, express.raw({ type: "application/oc
   }
 });
 
-// REAL-TIME STREAMING CHAT ENDPOINT (SSE) — Authenticated + Per-User Chat Persistence
+async function executeBrowserBridgeTurn(providerKey, question, res) {
+  const provider = PROVIDERS[providerKey];
+  const assistant = await getProviderPage(providerKey);
+
+  // Dismiss any modals (ChatGPT "Stay logged out", DeepAI promo modals, etc.)
+  const closeButtons = assistant.locator('button[aria-label="Close"], button[aria-label="Dismiss"], button[aria-label="Dismiss announcement"], button:has-text("Stay logged out"), button:has-text("Maybe later")');
+  const closeCount = await closeButtons.count().catch(() => 0);
+  for (let i = 0; i < Math.min(closeCount, 5); i++) {
+    const btn = closeButtons.nth(i);
+    if (await btn.isVisible().catch(() => false)) {
+      await btn.click({ timeout: 300 }).catch(() => {});
+    }
+  }
+
+  // Check for login or Cloudflare verification wall
+  const pageTitle = await assistant.title().catch(() => "");
+  if (/Just a moment|Attention Required/i.test(pageTitle)) {
+    throw new Error(`${provider.name} is showing a Cloudflare verification challenge in the headless browser.`);
+  }
+
+  if (providerKey === "gemini") {
+    const signIn = await assistant.locator('a[href*="ServiceLogin"]').count();
+    if (signIn > 0 && !(await assistant.locator('rich-textarea [contenteditable="true"]').count())) {
+      throw new Error("Please sign in to Google in the opened browser window first. Sign-in is saved permanently.");
+    }
+  }
+
+  if (providerKey === "deepseek" && assistant.url().includes("/sign_in")) {
+    throw new Error("DeepSeek requires signing in first in the AI Bridge browser profile.");
+  }
+
+  const prompt = await findPromptInput(assistant, provider.prompt);
+  if (!prompt) {
+    throw new Error(`${provider.name} requires login or verification in this browser session.`);
+  }
+
+  const initialCount = await assistant.evaluate((sel) => document.querySelectorAll(sel).length, provider.response).catch(() => 0);
+
+  await prompt.click({ timeout: 3000 });
+  await assistant.keyboard.insertText(question);
+  await assistant.waitForTimeout(80);
+
+  let sent = false;
+  for (const sendSel of provider.send) {
+    const sendBtn = assistant.locator(sendSel).first();
+    if (
+      await sendBtn.count().catch(() => 0) > 0 &&
+      await sendBtn.isVisible().catch(() => false) &&
+      await sendBtn.isEnabled().catch(() => false)
+    ) {
+      await sendBtn.click({ timeout: 2000 }).catch(() => {});
+      sent = true;
+      break;
+    }
+  }
+  if (!sent) {
+    await assistant.keyboard.press("Enter");
+  }
+
+  let lastText = "";
+  let stableCount = 0;
+  const startTime = Date.now();
+  const timeoutMs = 60000;
+
+  while (Date.now() - startTime < timeoutMs) {
+    await assistant.waitForTimeout(60);
+    const { text: currentText, generating } = await pollBrowserState(assistant, providerKey, question, initialCount);
+
+    if (currentText && currentText !== lastText) {
+      const delta = currentText.startsWith(lastText) ? currentText.slice(lastText.length) : currentText;
+      lastText = currentText;
+      stableCount = 0;
+      res.write(`data: ${JSON.stringify({ type: "chunk", text: currentText, delta })}\n\n`);
+    } else if (currentText && currentText === lastText) {
+      if (!generating) {
+        stableCount++;
+        if (stableCount >= 8) break;
+      } else {
+        stableCount = 0;
+      }
+    }
+  }
+
+  if (!lastText) {
+    throw new Error(`No response received from ${provider.name}.`);
+  }
+
+  return lastText;
+}
+
+// REAL-TIME STREAMING CHAT ENDPOINT (SSE) — Authenticated + Per-User Chat Persistence + Context Window + Auto-Fallback + Vision
 app.post("/api/chat/stream", requireAuth, async (req, res) => {
   const rawQuestion = String(req.body?.message || "").trim();
-  const savedTpl = await getUserTemplateSettings(req.user.userId).catch(() => ({}));
+  const requestedChatId = req.body?.chatId ? String(req.body.chatId) : null;
+  const providerKey = String(req.body?.provider || "deepai").toLowerCase();
+  const provider = PROVIDERS[providerKey];
+  const directApiMode = req.body?.directApiMode === true;
+  const imageDataUrl = String(req.body?.imageDataUrl || "").trim();
+
+  const providerListError = "Choose Gemini, ChatGPT, DeepSeek, Claude, Duck.ai, DeepAI, or Perplexity.";
+  if (!rawQuestion) return res.status(400).json({ error: "Enter a question." });
+  if (!provider) return res.status(400).json({ error: providerListError });
+
+  const [savedTpl, existingChat] = await Promise.all([
+    getUserTemplateSettings(req.user.userId).catch(() => ({})),
+    requestedChatId ? getUserChatById(req.user.userId, requestedChatId).catch(() => null) : Promise.resolve(null)
+  ]);
+
   const reqProfile = req.body?.interviewProfile && typeof req.body.interviewProfile === "object" ? req.body.interviewProfile : {};
   const mergedProfile = {
     role: reqProfile.role ?? savedTpl.role ?? "",
     experience: reqProfile.experience ?? savedTpl.experience ?? "",
     techStack: reqProfile.techStack ?? savedTpl.techStack ?? "",
     companyName: reqProfile.companyName ?? savedTpl.companyName ?? "",
-    keyDetails: reqProfile.keyDetails ?? savedTpl.keyDetails ?? ""
+    keyDetails: reqProfile.keyDetails ?? savedTpl.keyDetails ?? "",
+    resumeText: reqProfile.resumeText ?? savedTpl.resumeText ?? "",
+    jobDescription: reqProfile.jobDescription ?? savedTpl.jobDescription ?? ""
   };
   const useInterviewMode = req.body?.interviewMode !== undefined
     ? req.body.interviewMode !== false
     : savedTpl.interviewMode !== false;
+  const answerStyle = req.body?.answerStyle !== undefined ? req.body.answerStyle : savedTpl.answerStyle;
+  const contextWindowEnabled = req.body?.contextWindowEnabled !== undefined
+    ? req.body.contextWindowEnabled !== false
+    : savedTpl.contextWindowEnabled !== false;
+  const teleprompterMode = req.body?.teleprompterMode !== undefined
+    ? Boolean(req.body.teleprompterMode)
+    : Boolean(savedTpl.teleprompterMode);
+  const autoFallbackEnabled = req.body?.autoFallbackEnabled !== undefined
+    ? req.body.autoFallbackEnabled !== false
+    : savedTpl.autoFallbackEnabled !== false;
+
   const question = buildFinalPrompt(rawQuestion, {
     interviewMode: useInterviewMode,
     customTemplate: req.body?.customTemplate !== undefined ? req.body.customTemplate : savedTpl.customTemplate,
-    profile: mergedProfile
+    answerStyle,
+    profile: mergedProfile,
+    recentMessages: existingChat?.messages || [],
+    contextWindowEnabled,
+    teleprompterMode
   });
-  const providerKey = String(req.body?.provider || "deepai").toLowerCase();
-  const provider = PROVIDERS[providerKey];
-  const directApiMode = req.body?.directApiMode === true;
-  const requestedChatId = req.body?.chatId ? String(req.body.chatId) : null;
-
-  const providerListError = "Choose Gemini, ChatGPT, DeepSeek, Claude, Duck.ai, DeepAI, or Perplexity.";
-  if (!rawQuestion) return res.status(400).json({ error: "Enter a question." });
-  if (!provider) return res.status(400).json({ error: providerListError });
 
   // Persist user message immediately under authenticated user's isolated chat
   let activeChatId = requestedChatId;
@@ -1453,28 +1702,50 @@ app.post("/api/chat/stream", requireAuth, async (req, res) => {
       })}\n\n`);
       return res.end();
     }
-    try {
-      const fullText = await runDirectApiProvider(providerKey, customKey, question, res);
-      if (fullText) {
-        await appendChatMessage({
-          userId: req.user.userId,
-          chatId: activeChatId,
-          role: "assistant",
-          text: fullText,
-          provider: provider.name
-        }).catch(() => {});
+
+    const effectiveKeys = { ...userKeys, [providerKey]: customKey };
+    const candidates = autoFallbackEnabled
+      ? [providerKey, ...getFallbackProviderOrder(providerKey, { directApiMode: true, userKeys: effectiveKeys })]
+      : [providerKey];
+
+    let lastErr = null;
+    for (let i = 0; i < candidates.length; i++) {
+      const candKey = candidates[i];
+      const candProvider = PROVIDERS[candKey];
+      const candApiKey = effectiveKeys[candKey];
+      if (!candProvider || !candApiKey) continue;
+      if (i > 0) {
+        res.write(`data: ${JSON.stringify({
+          type: "info",
+          provider: candProvider.name,
+          text: `${PROVIDERS[candidates[i - 1]].name} failed — auto-falling back to ${candProvider.name}...`
+        })}\n\n`);
       }
-      res.write(`data: ${JSON.stringify({ type: "done", text: fullText, provider: provider.name, chatId: activeChatId })}\n\n`);
-      return res.end();
-    } catch (apiErr) {
-      const friendlyError = formatApiError(provider.name, apiErr);
-      console.warn("Direct API failed:", apiErr.message);
-      res.write(`data: ${JSON.stringify({ type: "error", error: friendlyError })}\n\n`);
-      return res.end();
+      try {
+        const fullText = await runDirectApiProvider(candKey, candApiKey, question, res, imageDataUrl);
+        if (fullText) {
+          await appendChatMessage({
+            userId: req.user.userId,
+            chatId: activeChatId,
+            role: "assistant",
+            text: fullText,
+            provider: candProvider.name
+          }).catch(() => {});
+        }
+        res.write(`data: ${JSON.stringify({ type: "done", text: fullText, provider: candProvider.name, chatId: activeChatId })}\n\n`);
+        return res.end();
+      } catch (apiErr) {
+        lastErr = apiErr;
+        console.warn(`Direct API (${candProvider.name}) failed:`, apiErr.message);
+      }
     }
+
+    const friendlyError = formatApiError(provider.name, lastErr || new Error("All configured Direct API providers failed."));
+    res.write(`data: ${JSON.stringify({ type: "error", error: friendlyError })}\n\n`);
+    return res.end();
   }
 
-  // Default: Browser Bridge mode — asks directly in the opened browser and streams back fast
+  // Default: Browser Bridge mode — asks directly in the opened browser and streams back fast (with optional auto-fallback)
   if (busy) {
     res.write(`data: ${JSON.stringify({ type: "error", error: "The AI service is currently busy. Please wait a moment." })}\n\n`);
     return res.end();
@@ -1482,108 +1753,40 @@ app.post("/api/chat/stream", requireAuth, async (req, res) => {
 
   busy = true;
   try {
-    const assistant = await getProviderPage(providerKey);
+    const candidates = autoFallbackEnabled
+      ? [providerKey, ...getFallbackProviderOrder(providerKey, { directApiMode: false }).slice(0, 2)]
+      : [providerKey];
 
-    // Dismiss any modals (ChatGPT "Stay logged out", DeepAI promo modals, etc.)
-    const closeButtons = assistant.locator('button[aria-label="Close"], button[aria-label="Dismiss"], button[aria-label="Dismiss announcement"], button:has-text("Stay logged out"), button:has-text("Maybe later")');
-    const closeCount = await closeButtons.count().catch(() => 0);
-    for (let i = 0; i < Math.min(closeCount, 5); i++) {
-      const btn = closeButtons.nth(i);
-      if (await btn.isVisible().catch(() => false)) {
-        await btn.click({ timeout: 300 }).catch(() => {});
+    let lastBridgeError = null;
+    for (let i = 0; i < candidates.length; i++) {
+      const candKey = candidates[i];
+      const candProvider = PROVIDERS[candKey];
+      if (!candProvider) continue;
+      if (i > 0) {
+        res.write(`data: ${JSON.stringify({
+          type: "info",
+          provider: candProvider.name,
+          text: `${PROVIDERS[candidates[i - 1]].name} failed — auto-falling back to ${candProvider.name}...`
+        })}\n\n`);
+      }
+      try {
+        const lastText = await executeBrowserBridgeTurn(candKey, question, res);
+        await appendChatMessage({
+          userId: req.user.userId,
+          chatId: activeChatId,
+          role: "assistant",
+          text: lastText,
+          provider: candProvider.name
+        }).catch(() => {});
+        res.write(`data: ${JSON.stringify({ type: "done", text: lastText, provider: candProvider.name, chatId: activeChatId })}\n\n`);
+        return res.end();
+      } catch (err) {
+        lastBridgeError = err;
+        console.warn(`Browser Bridge (${candProvider.name}) failed:`, err.message);
       }
     }
 
-    // Check for login or Cloudflare verification wall
-    const pageTitle = await assistant.title().catch(() => "");
-    if (/Just a moment|Attention Required/i.test(pageTitle)) {
-      throw new Error(`${provider.name} is showing a Cloudflare verification challenge in the headless browser. Use Gemini/DeepAI Browser Bridge, turn ON Direct API Mode, or run locally with your logged-in Chrome.`);
-    }
-
-    if (providerKey === "gemini") {
-      const signIn = await assistant.locator('a[href*="ServiceLogin"]').count();
-      if (signIn > 0 && !(await assistant.locator('rich-textarea [contenteditable="true"]').count())) {
-        throw new Error("Please sign in to Google in the opened browser window first. Sign-in is saved permanently.");
-      }
-    }
-
-    if (providerKey === "deepseek" && assistant.url().includes("/sign_in")) {
-      throw new Error("DeepSeek requires signing in first. Sign in to DeepSeek in your local Chrome browser (http://127.0.0.1:9222) or AI Bridge browser profile.");
-    }
-
-    const prompt = await findPromptInput(assistant, provider.prompt);
-    if (!prompt) {
-      throw new Error(`${provider.name} requires login or verification in this browser session. Use Gemini/DeepAI Browser Bridge, or run locally with your logged-in Chrome.`);
-    }
-
-    // Record initial response count quickly inside page
-    const initialCount = await assistant.evaluate((sel) => document.querySelectorAll(sel).length, provider.response).catch(() => 0);
-
-    // Type prompt reliably into rich editors
-    await prompt.click({ timeout: 3000 });
-    await assistant.keyboard.insertText(question);
-    await assistant.waitForTimeout(80);
-
-    // Click send or press Enter
-    let sent = false;
-    for (const sendSel of provider.send) {
-      const sendBtn = assistant.locator(sendSel).first();
-      if (
-        await sendBtn.count().catch(() => 0) > 0 &&
-        await sendBtn.isVisible().catch(() => false) &&
-        await sendBtn.isEnabled().catch(() => false)
-      ) {
-        await sendBtn.click({ timeout: 2000 }).catch(() => {});
-        sent = true;
-        break;
-      }
-    }
-    if (!sent) {
-      await assistant.keyboard.press("Enter");
-    }
-
-    // High-frequency 60ms in-page polling to stream tokens live in seconds
-    let lastText = "";
-    let stableCount = 0;
-    const startTime = Date.now();
-    const timeoutMs = 60000;
-
-    while (Date.now() - startTime < timeoutMs) {
-      await assistant.waitForTimeout(60);
-      const { text: currentText, generating } = await pollBrowserState(assistant, providerKey, question, initialCount);
-
-      if (currentText && currentText !== lastText) {
-        const delta = currentText.startsWith(lastText) ? currentText.slice(lastText.length) : currentText;
-        lastText = currentText;
-        stableCount = 0;
-        res.write(`data: ${JSON.stringify({ type: "chunk", text: currentText, delta })}\n\n`);
-      } else if (currentText && currentText === lastText) {
-        if (!generating) {
-          stableCount++;
-          // 8 polls * 60ms = ~480ms after generation stops
-          if (stableCount >= 8) {
-            break;
-          }
-        } else {
-          stableCount = 0;
-        }
-      }
-    }
-
-    if (!lastText) {
-      throw new Error(`No response received from ${provider.name}. Please check the browser window.`);
-    }
-
-    await appendChatMessage({
-      userId: req.user.userId,
-      chatId: activeChatId,
-      role: "assistant",
-      text: lastText,
-      provider: provider.name
-    }).catch(() => {});
-
-    res.write(`data: ${JSON.stringify({ type: "done", text: lastText, provider: provider.name, chatId: activeChatId })}\n\n`);
-    res.end();
+    throw lastBridgeError || new Error("Failed to generate response.");
   } catch (error) {
     res.write(`data: ${JSON.stringify({
       type: "error",
@@ -1599,14 +1802,20 @@ app.post("/api/chat/stream", requireAuth, async (req, res) => {
 // Non-streaming compatibility endpoint
 app.post("/api/chat", requireAuth, async (req, res) => {
   const rawQuestion = String(req.body?.message || "").trim();
-  const savedTpl = await getUserTemplateSettings(req.user.userId).catch(() => ({}));
+  const requestedChatId = req.body?.chatId ? String(req.body.chatId) : null;
+  const [savedTpl, existingChat] = await Promise.all([
+    getUserTemplateSettings(req.user.userId).catch(() => ({})),
+    requestedChatId ? getUserChatById(req.user.userId, requestedChatId).catch(() => null) : Promise.resolve(null)
+  ]);
   const reqProfile = req.body?.interviewProfile && typeof req.body.interviewProfile === "object" ? req.body.interviewProfile : {};
   const mergedProfile = {
     role: reqProfile.role ?? savedTpl.role ?? "",
     experience: reqProfile.experience ?? savedTpl.experience ?? "",
     techStack: reqProfile.techStack ?? savedTpl.techStack ?? "",
     companyName: reqProfile.companyName ?? savedTpl.companyName ?? "",
-    keyDetails: reqProfile.keyDetails ?? savedTpl.keyDetails ?? ""
+    keyDetails: reqProfile.keyDetails ?? savedTpl.keyDetails ?? "",
+    resumeText: reqProfile.resumeText ?? savedTpl.resumeText ?? "",
+    jobDescription: reqProfile.jobDescription ?? savedTpl.jobDescription ?? ""
   };
   const useInterviewMode = req.body?.interviewMode !== undefined
     ? req.body.interviewMode !== false
@@ -1614,7 +1823,11 @@ app.post("/api/chat", requireAuth, async (req, res) => {
   const question = buildFinalPrompt(rawQuestion, {
     interviewMode: useInterviewMode,
     customTemplate: req.body?.customTemplate !== undefined ? req.body.customTemplate : savedTpl.customTemplate,
-    profile: mergedProfile
+    answerStyle: req.body?.answerStyle !== undefined ? req.body.answerStyle : savedTpl.answerStyle,
+    profile: mergedProfile,
+    recentMessages: existingChat?.messages || [],
+    contextWindowEnabled: req.body?.contextWindowEnabled !== undefined ? req.body.contextWindowEnabled !== false : savedTpl.contextWindowEnabled !== false,
+    teleprompterMode: req.body?.teleprompterMode !== undefined ? Boolean(req.body.teleprompterMode) : Boolean(savedTpl.teleprompterMode)
   });
   const providerKey = String(req.body?.provider || "deepai").toLowerCase();
   const provider = PROVIDERS[providerKey];
@@ -1622,7 +1835,6 @@ app.post("/api/chat", requireAuth, async (req, res) => {
   if (!rawQuestion) return res.status(400).json({ error: "Enter a question." });
   if (!provider) return res.status(400).json({ error: "Choose Gemini, ChatGPT, DeepSeek, Claude, Duck.ai, DeepAI, or Perplexity." });
 
-  const requestedChatId = req.body?.chatId ? String(req.body.chatId) : null;
   let activeChatId = requestedChatId;
   try {
     const savedUser = await appendChatMessage({

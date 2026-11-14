@@ -1800,6 +1800,446 @@
       }
       .ws-mode-text { display: none; }
     }
+
+    /* -------- LIVE INTERVIEW UPGRADES: SIDEBAR TABS, FOLLOW-UPS, CROPPER, TELEPROMPTER, COMPACT -------- */
+    .sidebar-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-hairline);
+      background: #090f1e;
+    }
+
+    .sidebar-tab-btn {
+      padding: 7px 8px;
+      border-radius: 7px;
+      border: 1px solid var(--border-hairline);
+      background: transparent;
+      color: var(--text-secondary);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .sidebar-tab-btn:hover {
+      background: #141f38;
+      color: #ffffff;
+    }
+
+    .sidebar-tab-btn.active {
+      background: #192645;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .revision-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .revision-panel.view-hidden {
+      display: none !important;
+    }
+
+    .revision-quiz-btn {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid #3b82f6;
+      background: rgba(37, 99, 235, 0.18);
+      color: #dbeafe;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .revision-quiz-btn:hover:not(:disabled) {
+      background: rgba(37, 99, 235, 0.34);
+      color: #ffffff;
+    }
+
+    .revision-quiz-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .bookmark-card {
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid #1e2d4a;
+      background: #10182d;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bookmark-q {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .bookmark-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .bookmark-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bookmark-btn {
+      flex: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #263656;
+      background: #14203b;
+      color: #cbd5e1;
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .bookmark-btn:hover {
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .bookmark-del-btn {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #3f2027;
+      background: rgba(220, 38, 38, 0.12);
+      color: #fca5a5;
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .answer-style-select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #263656;
+      background: #111a2f;
+      color: #e2e8f0;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      max-width: 210px;
+    }
+
+    .answer-style-select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .ai-followup-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #1e2d4a;
+    }
+
+    .ai-followup-btn {
+      padding: 4px 9px;
+      border-radius: 6px;
+      border: 1px solid #263656;
+      background: #0d1529;
+      color: #cbd5e1;
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+    }
+
+    .ai-followup-btn:hover {
+      background: #182542;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .ai-followup-btn.saved {
+      border-color: #22c55e;
+      color: #86efac;
+      background: rgba(34, 197, 94, 0.14);
+    }
+
+    #chat.teleprompter-on .bubble.ai {
+      font-size: 15.5px;
+      line-height: 1.72;
+      background: #0c1428;
+      border-color: #2c416b;
+    }
+
+    #chat.teleprompter-on .bubble.ai strong {
+      color: #fef08a;
+      background: rgba(234, 179, 8, 0.16);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    .last30-btn {
+      height: 50px;
+      padding: 0 11px;
+      border: 1px solid #263656;
+      border-radius: 11px;
+      background: #101a30;
+      color: #93c5fd;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .last30-btn:hover:not(:disabled) {
+      background: #182848;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .last30-btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .vision-attachment-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: 1px solid #2c4676;
+      background: #0e1933;
+      font-size: 12px;
+      color: #dbeafe;
+    }
+
+    .vision-attachment-bar.active {
+      display: flex;
+    }
+
+    .vision-clear-btn {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font: inherit;
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+
+    .shortcut-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 5px;
+      padding: 9px 11px;
+      border-radius: 9px;
+      background: #0d1529;
+      border: 1px solid #1f2e4d;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .shortcut-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .shortcut-kbd {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: #17233f;
+      border: 1px solid #2c3e64;
+      color: #dbeafe;
+    }
+
+    .opacity-control {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      border: 1px solid #243454;
+      background: #10182d;
+    }
+
+    .opacity-control-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #eef2fb;
+    }
+
+    .opacity-control input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .crop-modal-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      width: 94%;
+      max-width: 900px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      gap: 12px;
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.65);
+    }
+
+    .crop-canvas-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 220px;
+      max-height: 62vh;
+      overflow: auto;
+      background: #070b15;
+      border: 1px solid #233354;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    #regionCropCanvas {
+      max-width: 100%;
+      max-height: 58vh;
+      cursor: crosshair;
+      display: block;
+      user-select: none;
+    }
+
+    .crop-modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .crop-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    body.compact-mode .ws-header {
+      padding: 7px 12px;
+    }
+
+    body.compact-mode .container {
+      padding: 8px 10px;
+    }
+
+    body.compact-mode .bubble {
+      padding: 11px 14px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    body.compact-mode form#form textarea,
+    body.compact-mode .read-screen-btn,
+    body.compact-mode .listen-btn,
+    body.compact-mode .last30-btn,
+    body.compact-mode button#send {
+      height: 42px;
+      min-height: 42px;
+      font-size: 12.5px;
+    }
+
+    @media (max-width: 820px) {
+      .last30-btn span.btn-lbl,
+      .read-screen-btn span#readScreenText {
+        display: none;
+      }
+      .answer-style-select {
+        max-width: 145px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .ws-header {
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .ws-header-left h1 {
+        font-size: 15px;
+      }
+      .header-actions {
+        flex-wrap: nowrap;
+        gap: 6px;
+      }
+      .answer-style-select {
+        max-width: 128px;
+        padding: 5px 8px;
+        font-size: 12px;
+      }
+      form#form {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      form#form textarea {
+        flex: 1 0 100%;
+        width: 100%;
+      }
+      .listen-btn,
+      .last30-btn,
+      .read-screen-btn {
+        height: 42px;
+        padding: 0 11px;
+      }
+      button#send {
+        height: 42px;
+        margin-left: auto;
+        padding: 0 18px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2036,8 +2476,20 @@
         </button>
       </div>
 
+      <div class="sidebar-tabs" role="tablist" aria-label="Sidebar sections">
+        <button type="button" class="sidebar-tab-btn active" id="tabChatsBtn" role="tab" aria-selected="true">💬 Chats</button>
+        <button type="button" class="sidebar-tab-btn" id="tabRevisionBtn" role="tab" aria-selected="false">⭐ Revision</button>
+      </div>
+
       <div class="sidebar-history" id="chatHistoryList">
         <div class="history-empty">No previous chats yet. Ask a question to start saving your history.</div>
+      </div>
+
+      <div class="revision-panel view-hidden" id="revisionPanel" aria-label="Saved weak topics and revision">
+        <button type="button" class="revision-quiz-btn" id="generateMockQuizBtn">Generate Mock Quiz from Saved</button>
+        <div id="bookmarksList">
+          <div class="history-empty">Star any AI answer during an interview to build your Revision list here.</div>
+        </div>
       </div>
 
       <div class="sidebar-footer">
@@ -2061,6 +2513,13 @@
           <span class="ws-mode-text" id="activeModelStatus"><span id="activeModelLabel">DeepAI</span> · <span id="modeBadge">Browser Bridge</span></span>
         </div>
         <div class="header-actions">
+          <select id="answerStyleSelect" class="answer-style-select" aria-label="Answer style preset" title="Switch answer style for this interview round">
+            <option value="deep_technical">Deep Technical (5-Step)</option>
+            <option value="quick_spoken">Quick Spoken (20-30s)</option>
+            <option value="coding_dsa">Coding / DSA</option>
+            <option value="system_design">System Design</option>
+            <option value="behavioral_star">Behavioral / STAR</option>
+          </select>
           <button class="settings-btn" id="rightMenuBtn" type="button" aria-expanded="false" aria-controls="rightMenuDrawer">
             ⚙ Menu
           </button>
@@ -2089,13 +2548,22 @@
           <input type="file" id="audioFileInput" accept="audio/*" style="display:none" />
         </div>
 
+        <div id="visionAttachmentBar" class="vision-attachment-bar" role="status">
+          <span id="visionAttachmentLabel">Cropped screenshot attached for Direct API Vision.</span>
+          <button type="button" class="vision-clear-btn" id="clearVisionAttachmentBtn">Remove Image</button>
+        </div>
+
         <form id="form">
           <textarea id="message" placeholder="Ask DeepAI something... (Press Enter to send)" rows="1" required></textarea>
-          <button id="listenBtn" type="button" class="listen-btn" title="Listen ONLY to system speaker / Meet opponent audio (no microphone) and transcribe into input">
+          <button id="listenBtn" type="button" class="listen-btn" title="Listen ONLY to system speaker / Meet opponent audio (no microphone) and transcribe into input (Alt+L)">
             <span id="listenIcon">🎧</span>
             <span id="listenText">Listen</span>
           </button>
-          <button id="readScreenBtn" type="button" class="read-screen-btn" title="Hide window briefly, capture screen, and extract text locally via OCR">
+          <button id="askLast30sBtn" type="button" class="last30-btn" title="Instant Replay Ask: transcribe & submit the last 30s of speaker audio (Alt+A)">
+            <span>⏮</span>
+            <span class="btn-lbl">Last 30s</span>
+          </button>
+          <button id="readScreenBtn" type="button" class="read-screen-btn" title="Capture screen (or region crop) and extract text via local OCR or Vision (Alt+R)">
             <span id="readScreenIcon">📷</span>
             <span id="readScreenText">Read Screen</span>
           </button>
@@ -2143,14 +2611,24 @@
         </div>
 
         <div class="right-menu-section">
-          <div class="right-menu-label">Modes</div>
-          <label class="menu-toggle-row" for="interviewModeToggle" title="Structure technical answers clearly in interview-ready English (Definition, Purpose, Working, MERN Example, Important Point)">
+          <div class="right-menu-label">Interview &amp; Answer Modes</div>
+          <label class="menu-toggle-row" for="interviewModeToggle" title="Structure technical answers clearly in interview-ready English">
             <div class="menu-toggle-info">
               <span class="menu-toggle-title">Interview Mode</span>
-              <span class="menu-toggle-sub">5-step structured interview answers</span>
+              <span class="menu-toggle-sub">Structured answers tailored to active round preset</span>
             </div>
             <input type="checkbox" id="interviewModeToggle" checked />
           </label>
+          <div class="api-key-item">
+            <div class="api-key-row-head"><span>Round Preset</span></div>
+            <select id="drawerAnswerStyleSelect" class="api-key-input" style="cursor:pointer;">
+              <option value="deep_technical">Deep Technical (5-Step)</option>
+              <option value="quick_spoken">Quick Spoken (20-30s)</option>
+              <option value="coding_dsa">Coding / DSA</option>
+              <option value="system_design">System Design</option>
+              <option value="behavioral_star">Behavioral / STAR</option>
+            </select>
+          </div>
           <div class="drawer-profile-meta" id="drawerProfileMeta">
             <span class="drawer-profile-summary-text" id="drawerProfileSummary">Not personalized yet (Role, Skills, Company)</span>
             <button type="button" class="drawer-profile-edit-btn" id="drawerPersonalizeBtn">Personalize</button>
@@ -2202,9 +2680,86 @@
         </div>
 
         <div class="right-menu-section">
+          <div class="right-menu-label">Live Call &amp; Reliability</div>
+          <label class="menu-toggle-row" for="autoSendSilenceToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Auto-Send on Silence</span>
+              <span class="menu-toggle-sub">Submit automatically after 1.8s silence while Listening</span>
+            </div>
+            <input type="checkbox" id="autoSendSilenceToggle" />
+          </label>
+          <label class="menu-toggle-row" for="contextWindowToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Follow-up Context Window</span>
+              <span class="menu-toggle-sub">Include last 3 Q&amp;A turns for follow-up questions</span>
+            </div>
+            <input type="checkbox" id="contextWindowToggle" checked />
+          </label>
+          <label class="menu-toggle-row" for="teleprompterToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Teleprompter Highlighting</span>
+              <span class="menu-toggle-sub">Highlight key anchor phrases for 2-second scanning</span>
+            </div>
+            <input type="checkbox" id="teleprompterToggle" />
+          </label>
+          <label class="menu-toggle-row" for="autoFallbackToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Multi-Provider Auto-Fallback</span>
+              <span class="menu-toggle-sub">Retry next configured model if primary times out</span>
+            </div>
+            <input type="checkbox" id="autoFallbackToggle" checked />
+          </label>
+          <label class="menu-toggle-row" for="regionSelectToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Region-Select Screen Crop</span>
+              <span class="menu-toggle-sub">Drag-crop problem area or send image to Vision AI</span>
+            </div>
+            <input type="checkbox" id="regionSelectToggle" checked />
+          </label>
+          <label class="menu-toggle-row" for="compactModeToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Compact Floating Mode</span>
+              <span class="menu-toggle-sub">Streamlined webcam-friendly layout</span>
+            </div>
+            <input type="checkbox" id="compactModeToggle" />
+          </label>
+        </div>
+
+        <div class="right-menu-section" id="desktopControlsSection">
+          <div class="right-menu-label">Desktop Window &amp; Shortcuts</div>
+          <div class="opacity-control">
+            <div class="opacity-control-head">
+              <span>Window Opacity</span>
+              <span id="windowOpacityValue">96%</span>
+            </div>
+            <input type="range" id="windowOpacitySlider" min="40" max="100" value="96" />
+          </div>
+          <label class="menu-toggle-row" for="alwaysOnTopToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Always On Top</span>
+              <span class="menu-toggle-sub">Keep helper pinned above Meet/Zoom (Desktop)</span>
+            </div>
+            <input type="checkbox" id="alwaysOnTopToggle" checked />
+          </label>
+          <label class="menu-toggle-row" for="stealthProtectToggle">
+            <div class="menu-toggle-info">
+              <span class="menu-toggle-title">Hide from Screen Share</span>
+              <span class="menu-toggle-sub">Enable OS content protection in Electron desktop</span>
+            </div>
+            <input type="checkbox" id="stealthProtectToggle" />
+          </label>
+          <div class="shortcut-list" aria-label="Keyboard shortcuts">
+            <div class="shortcut-row"><span>Listen Toggle</span><span class="shortcut-kbd">Alt+L</span></div>
+            <div class="shortcut-row"><span>Ask Last 30s</span><span class="shortcut-kbd">Alt+A</span></div>
+            <div class="shortcut-row"><span>Read Screen</span><span class="shortcut-kbd">Alt+R</span></div>
+            <div class="shortcut-row"><span>Clear Input</span><span class="shortcut-kbd">Alt+X</span></div>
+          </div>
+        </div>
+
+        <div class="right-menu-section">
           <div class="right-menu-label">Workspace</div>
           <button class="menu-action-btn" id="openSettingsBtn" type="button">
-            <span>Settings &amp; Template</span>
+            <span>Settings, Resume &amp; Template</span>
             <span>→</span>
           </button>
           <button class="menu-action-btn" id="wsHomeBtn" type="button">
@@ -2216,11 +2771,35 @@
     </aside>
   </section>
 
+  <!-- Region Select Screen Crop Modal -->
+  <div class="modal-overlay" id="regionCropModal" aria-label="Region select screen capture">
+    <div class="crop-modal-card">
+      <div class="profile-section-header" style="margin-bottom:0;">
+        <div>
+          <h2 style="margin:0;font-size:16px;color:#f8fafc;">Select Screen Region (Optional)</h2>
+          <p style="margin:2px 0 0;font-size:12px;color:#94a3b8;">Drag on the screenshot to crop just the coding problem or diagram, or process the full image.</p>
+        </div>
+        <button type="button" class="sidebar-icon-btn" id="cropCancelBtn" title="Cancel">✕</button>
+      </div>
+      <div class="crop-canvas-wrap">
+        <canvas id="regionCropCanvas"></canvas>
+      </div>
+      <div class="crop-modal-actions">
+        <span id="cropSelectionHint" style="font-size:12px;color:#93c5fd;">No selection drawn yet (full screen if none selected).</span>
+        <div class="crop-btn-group">
+          <button type="button" class="btn-cancel" id="cropFullBtn">OCR Full Image</button>
+          <button type="button" class="fb-btn" id="cropVisionBtn" title="Attach cropped image for Vision-capable Direct API models (Gemini, ChatGPT, Claude)">Attach Image for Vision AI</button>
+          <button type="button" class="btn-save" id="cropOcrBtn">Crop &amp; Run OCR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings / API Keys & Interview Template Modal -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal">
-      <h2>Settings &amp; Interview Template</h2>
-      <p>Personalize Interview Mode for your target role, skills, and company, customize the prompt template, or save your personal API keys (all stored per user in MongoDB).</p>
+      <h2>Settings, Resume &amp; Interview Template</h2>
+      <p>Personalize Interview Mode for your target role, skills, resume, and job description, customize the prompt template, or save your personal API keys (all stored per user in MongoDB).</p>
 
       <div class="profile-section-box">
         <div class="profile-section-header">
@@ -2246,7 +2825,19 @@
           </div>
           <div class="form-group profile-field-full" style="margin-bottom:0;">
             <label for="profileKeyDetailsInput">Other Key Details (Projects, Focus Areas, Tone)</label>
-            <textarea id="profileKeyDetailsInput" rows="3" style="min-height:72px;" placeholder="e.g., Built multi-tenant SaaS e-commerce checkout, emphasize scalability, keep answers concise for live speech"></textarea>
+            <textarea id="profileKeyDetailsInput" rows="2" style="min-height:62px;" placeholder="e.g., Built multi-tenant SaaS e-commerce checkout, emphasize scalability, keep answers concise for live speech"></textarea>
+          </div>
+          <div class="form-group profile-field-full" style="margin-bottom:0;">
+            <label for="profileResumeInput">
+              <span>Resume Summary / Projects &amp; Metrics (Stored in MongoDB)</span>
+              <button type="button" id="uploadResumeFileBtn" class="fb-btn" style="padding:2px 8px;font-size:11px;">Load .txt / .md File</button>
+            </label>
+            <input type="file" id="resumeFileInput" accept=".txt,.md,.json,.csv,.text" style="display:none" />
+            <textarea id="profileResumeInput" rows="3" style="min-height:76px;" placeholder="Paste key resume bullets, projects, metrics (e.g., Reduced API p95 latency by 42% using Redis caching...)"></textarea>
+          </div>
+          <div class="form-group profile-field-full" style="margin-bottom:0;">
+            <label for="profileJdInput">Target Job Description (JD)</label>
+            <textarea id="profileJdInput" rows="2" style="min-height:64px;" placeholder="Paste role requirements or JD keywords so answers align with the job"></textarea>
           </div>
         </div>
       </div>
@@ -2695,10 +3286,131 @@
     const openSidebarBtn = document.querySelector("#openSidebarBtn");
     const newChatBtn = document.querySelector("#newChatBtn");
     const chatHistoryList = document.querySelector("#chatHistoryList");
+    const tabChatsBtn = document.querySelector("#tabChatsBtn");
+    const tabRevisionBtn = document.querySelector("#tabRevisionBtn");
+    const revisionPanel = document.querySelector("#revisionPanel");
+    const bookmarksList = document.querySelector("#bookmarksList");
+    const generateMockQuizBtn = document.querySelector("#generateMockQuizBtn");
     const logoutBtn = document.querySelector("#logoutBtn");
     const userAvatarInitials = document.querySelector("#userAvatarInitials");
     const sidebarUserName = document.querySelector("#sidebarUserName");
     const sidebarUserEmail = document.querySelector("#sidebarUserEmail");
+    let bookmarksCache = [];
+
+    function setSidebarTab(tabName) {
+      const showRevision = tabName === "revision";
+      tabChatsBtn?.classList.toggle("active", !showRevision);
+      tabChatsBtn?.setAttribute("aria-selected", String(!showRevision));
+      tabRevisionBtn?.classList.toggle("active", showRevision);
+      tabRevisionBtn?.setAttribute("aria-selected", String(showRevision));
+      chatHistoryList.classList.toggle("view-hidden", showRevision);
+      revisionPanel?.classList.toggle("view-hidden", !showRevision);
+    }
+
+    tabChatsBtn?.addEventListener("click", () => setSidebarTab("chats"));
+    tabRevisionBtn?.addEventListener("click", () => {
+      setSidebarTab("revision");
+      loadUserBookmarks();
+    });
+
+    function renderBookmarksList() {
+      if (!bookmarksList) return;
+      if (generateMockQuizBtn) {
+        generateMockQuizBtn.disabled = !bookmarksCache.length;
+      }
+      if (!bookmarksCache.length) {
+        bookmarksList.innerHTML = `<div class="history-empty">Star any AI answer during an interview to build your Revision list here.</div>`;
+        return;
+      }
+      bookmarksList.innerHTML = bookmarksCache
+        .map(
+          (bm) => `
+          <div class="bookmark-card" data-bookmark-id="${escapeHtml(bm.id)}">
+            <div class="bookmark-q" title="${escapeHtml(bm.question)}">${escapeHtml(bm.question || "Saved Question")}</div>
+            <div class="bookmark-meta">
+              <span>${escapeHtml(providerLabel(bm.provider || "deepai"))}</span>
+              <span>${escapeHtml(bm.answerStyle || "deep_technical")}</span>
+            </div>
+            <div class="bookmark-actions">
+              <button type="button" class="bookmark-btn" data-bm-review="${escapeHtml(bm.id)}">View</button>
+              <button type="button" class="bookmark-btn" data-bm-practice="${escapeHtml(bm.id)}">Re-Ask</button>
+              <button type="button" class="bookmark-del-btn" data-bm-del="${escapeHtml(bm.id)}" title="Remove bookmark">✕</button>
+            </div>
+          </div>
+        `
+        )
+        .join("");
+    }
+
+    async function loadUserBookmarks() {
+      if (!currentUser) return;
+      try {
+        const res = await authFetch("/api/bookmarks");
+        if (!res.ok) return;
+        const data = await res.json();
+        bookmarksCache = Array.isArray(data.bookmarks) ? data.bookmarks : [];
+        renderBookmarksList();
+      } catch {}
+    }
+
+    bookmarksList?.addEventListener("click", async (e) => {
+      const viewBtn = e.target.closest("[data-bm-review]");
+      if (viewBtn) {
+        const bm = bookmarksCache.find((b) => b.id === viewBtn.dataset.bmReview);
+        if (bm) {
+          chat.innerHTML = "";
+          activeChatId = null;
+          addBubble(bm.question || "(Bookmarked Question)", "user");
+          addBubble(bm.answer || "", "ai", providerLabel(bm.provider || selectedProvider));
+          status.textContent = "Viewing bookmarked interview Q&A.";
+        }
+        return;
+      }
+      const askBtn = e.target.closest("[data-bm-practice]");
+      if (askBtn && !isGenerating) {
+        const bm = bookmarksCache.find((b) => b.id === askBtn.dataset.bmPractice);
+        if (bm) {
+          input.value = `Let's practice this again: ${bm.question}`;
+          autoResizeTextarea();
+          form.requestSubmit();
+        }
+        return;
+      }
+      const delBtn = e.target.closest("[data-bm-del]");
+      if (delBtn) {
+        const id = delBtn.dataset.bmDel;
+        const res = await authFetch(`/api/bookmarks/${encodeURIComponent(id)}`, { method: "DELETE" });
+        if (res.ok) {
+          bookmarksCache = bookmarksCache.filter((b) => b.id !== id);
+          renderBookmarksList();
+          status.textContent = "Removed bookmark from Revision list.";
+        }
+      }
+    });
+
+    generateMockQuizBtn?.addEventListener("click", async () => {
+      if (isGenerating || !bookmarksCache.length) return;
+      generateMockQuizBtn.disabled = true;
+      generateMockQuizBtn.textContent = "Building Quiz...";
+      try {
+        const res = await authFetch("/api/bookmarks/quiz", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bookmarkIds: bookmarksCache.slice(0, 6).map((b) => b.id) })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.quizPrompt) throw new Error(data.error || "Could not generate mock quiz.");
+        startNewChat();
+        input.value = data.quizPrompt;
+        autoResizeTextarea();
+        form.requestSubmit();
+      } catch (err) {
+        status.textContent = `⚠️ ${err.message}`;
+      } finally {
+        generateMockQuizBtn.disabled = !bookmarksCache.length;
+        generateMockQuizBtn.textContent = "Generate Mock Quiz from Saved";
+      }
+    });
 
     function setSidebarCollapsed(collapsed) {
       chatSidebar.classList.toggle("collapsed", collapsed);
@@ -2717,9 +3429,12 @@
       currentUser = null;
       activeChatId = null;
       chatsCache = [];
+      bookmarksCache = [];
       chat.innerHTML = "";
       if (typeof resetUserApiKeysUi === "function") resetUserApiKeysUi();
       if (typeof setRightMenuOpen === "function") setRightMenuOpen(false);
+      setSidebarTab("chats");
+      renderBookmarksList();
       updateLandingHeaderAuthState();
       showView("landing");
     }
@@ -2877,7 +3592,7 @@
       showView("workspace");
       if (!chat.children.length) renderWelcomeChat();
       await refreshServerSettings();
-      await loadUserChats();
+      await Promise.all([loadUserChats(), loadUserBookmarks()]);
     }
 
     // ----------------- WORKSPACE CHAT + TOOLS -----------------
@@ -2953,6 +3668,26 @@
     const profileTechStackInput = document.querySelector("#profileTechStackInput");
     const profileCompanyInput = document.querySelector("#profileCompanyInput");
     const profileKeyDetailsInput = document.querySelector("#profileKeyDetailsInput");
+    const profileResumeInput = document.querySelector("#profileResumeInput");
+    const profileJdInput = document.querySelector("#profileJdInput");
+    const uploadResumeFileBtn = document.querySelector("#uploadResumeFileBtn");
+    const resumeFileInput = document.querySelector("#resumeFileInput");
+    const answerStyleSelect = document.querySelector("#answerStyleSelect");
+    const drawerAnswerStyleSelect = document.querySelector("#drawerAnswerStyleSelect");
+    const autoSendSilenceToggle = document.querySelector("#autoSendSilenceToggle");
+    const contextWindowToggle = document.querySelector("#contextWindowToggle");
+    const teleprompterToggle = document.querySelector("#teleprompterToggle");
+    const autoFallbackToggle = document.querySelector("#autoFallbackToggle");
+    const regionSelectToggle = document.querySelector("#regionSelectToggle");
+    const compactModeToggle = document.querySelector("#compactModeToggle");
+    const windowOpacitySlider = document.querySelector("#windowOpacitySlider");
+    const windowOpacityValue = document.querySelector("#windowOpacityValue");
+    const alwaysOnTopToggle = document.querySelector("#alwaysOnTopToggle");
+    const stealthProtectToggle = document.querySelector("#stealthProtectToggle");
+    const askLast30sBtn = document.querySelector("#askLast30sBtn");
+    const visionAttachmentBar = document.querySelector("#visionAttachmentBar");
+    const visionAttachmentLabel = document.querySelector("#visionAttachmentLabel");
+    const clearVisionAttachmentBtn = document.querySelector("#clearVisionAttachmentBtn");
     const drawerProfileSummary = document.querySelector("#drawerProfileSummary");
     const drawerPersonalizeBtn = document.querySelector("#drawerPersonalizeBtn");
     const directApiKeysPanel = document.querySelector("#directApiKeysPanel");
@@ -2973,6 +3708,7 @@
     let isReadingScreen = false;
     let isListening = false;
     let listenState = null;
+    let pendingVisionImageDataUrl = "";
     let userApiKeys = {
       gemini: "",
       deepai: "",
@@ -3011,16 +3747,52 @@
       experience: "",
       techStack: "",
       companyName: "",
-      keyDetails: ""
+      keyDetails: "",
+      resumeText: "",
+      jobDescription: ""
     };
     let interviewMode = true;
     interviewModeToggle.checked = interviewMode;
+
+    let answerStyle = "deep_technical";
+    let autoSendOnSilence = false;
+    let contextWindowEnabled = true;
+    let teleprompterMode = false;
+    let autoFallbackEnabled = true;
+    let regionSelectBeforeOcr = true;
+    let compactMode = false;
 
     let customTemplate = "";
     interviewTemplateInput.value = defaultInterviewTemplate;
 
     let directApiMode = false;
     directApiToggle.checked = false;
+
+    function setPendingVisionImage(dataUrl, label = "Cropped screenshot attached for Direct API Vision.") {
+      pendingVisionImageDataUrl = dataUrl || "";
+      if (visionAttachmentBar) {
+        visionAttachmentBar.classList.toggle("active", Boolean(pendingVisionImageDataUrl));
+      }
+      if (visionAttachmentLabel) {
+        visionAttachmentLabel.textContent = label;
+      }
+    }
+
+    clearVisionAttachmentBtn?.addEventListener("click", () => {
+      setPendingVisionImage("");
+      status.textContent = "Removed attached vision image.";
+    });
+
+    function applyVisualModesToDom() {
+      chat.classList.toggle("teleprompter-on", Boolean(teleprompterMode));
+      document.body.classList.toggle("compact-mode", Boolean(compactMode));
+      if (compactMode) {
+        setSidebarCollapsed(true);
+      }
+      if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.setCompactMode === "function") {
+        window.aiBridgeDesktop.setCompactMode(Boolean(compactMode)).catch(() => {});
+      }
+    }
 
     function updateDrawerProfileSummary() {
       if (!drawerProfileSummary) return;
@@ -3029,6 +3801,8 @@
       if (interviewProfile.experience) parts.push(interviewProfile.experience);
       if (interviewProfile.companyName) parts.push(`@ ${interviewProfile.companyName}`);
       if (!parts.length && interviewProfile.techStack) parts.push(interviewProfile.techStack);
+      if (interviewProfile.resumeText) parts.push("Resume ✓");
+      if (interviewProfile.jobDescription) parts.push("JD ✓");
       if (parts.length > 0) {
         drawerProfileSummary.textContent = `Tailored: ${parts.join(" · ")}`;
         drawerProfileSummary.title = [
@@ -3036,11 +3810,13 @@
           interviewProfile.experience && `Experience: ${interviewProfile.experience}`,
           interviewProfile.companyName && `Company: ${interviewProfile.companyName}`,
           interviewProfile.techStack && `Skills: ${interviewProfile.techStack}`,
-          interviewProfile.keyDetails && `Details: ${interviewProfile.keyDetails}`
+          interviewProfile.keyDetails && `Details: ${interviewProfile.keyDetails}`,
+          interviewProfile.resumeText && "Resume: Loaded",
+          interviewProfile.jobDescription && "Job Description: Loaded"
         ].filter(Boolean).join("\n");
       } else {
-        drawerProfileSummary.textContent = "Not personalized yet (Role, Skills, Company)";
-        drawerProfileSummary.title = "Set Role, Experience, Tech Stack, Company Name & Key Details";
+        drawerProfileSummary.textContent = "Not personalized yet (Role, Skills, Resume, JD)";
+        drawerProfileSummary.title = "Set Role, Experience, Tech Stack, Resume & Job Description";
       }
     }
 
@@ -3050,8 +3826,19 @@
       if (profileTechStackInput) profileTechStackInput.value = interviewProfile.techStack || "";
       if (profileCompanyInput) profileCompanyInput.value = interviewProfile.companyName || "";
       if (profileKeyDetailsInput) profileKeyDetailsInput.value = interviewProfile.keyDetails || "";
+      if (profileResumeInput) profileResumeInput.value = interviewProfile.resumeText || "";
+      if (profileJdInput) profileJdInput.value = interviewProfile.jobDescription || "";
       interviewTemplateInput.value = customTemplate || defaultInterviewTemplate;
       interviewModeToggle.checked = interviewMode;
+      if (answerStyleSelect) answerStyleSelect.value = answerStyle || "deep_technical";
+      if (drawerAnswerStyleSelect) drawerAnswerStyleSelect.value = answerStyle || "deep_technical";
+      if (autoSendSilenceToggle) autoSendSilenceToggle.checked = Boolean(autoSendOnSilence);
+      if (contextWindowToggle) contextWindowToggle.checked = contextWindowEnabled !== false;
+      if (teleprompterToggle) teleprompterToggle.checked = Boolean(teleprompterMode);
+      if (autoFallbackToggle) autoFallbackToggle.checked = autoFallbackEnabled !== false;
+      if (regionSelectToggle) regionSelectToggle.checked = regionSelectBeforeOcr !== false;
+      if (compactModeToggle) compactModeToggle.checked = Boolean(compactMode);
+      applyVisualModesToDom();
       updateDrawerProfileSummary();
     }
 
@@ -3061,9 +3848,17 @@
         if (drawerKeyInputs[p]) drawerKeyInputs[p].value = "";
         if (modalKeyInputs[p]) modalKeyInputs[p].value = "";
       }
-      interviewProfile = { role: "", experience: "", techStack: "", companyName: "", keyDetails: "" };
+      interviewProfile = { role: "", experience: "", techStack: "", companyName: "", keyDetails: "", resumeText: "", jobDescription: "" };
       customTemplate = "";
       interviewMode = true;
+      answerStyle = "deep_technical";
+      autoSendOnSilence = false;
+      contextWindowEnabled = true;
+      teleprompterMode = false;
+      autoFallbackEnabled = true;
+      regionSelectBeforeOcr = true;
+      compactMode = false;
+      setPendingVisionImage("");
       syncTemplateSettingsUi();
       directApiMode = false;
       directApiToggle.checked = false;
@@ -3141,8 +3936,17 @@
         techStack: (profileTechStackInput?.value || "").trim(),
         companyName: (profileCompanyInput?.value || "").trim(),
         keyDetails: (profileKeyDetailsInput?.value || "").trim(),
+        resumeText: (profileResumeInput?.value || "").trim(),
+        jobDescription: (profileJdInput?.value || "").trim(),
         customTemplate: tplToSave,
-        interviewMode
+        interviewMode,
+        answerStyle,
+        autoSendOnSilence,
+        contextWindowEnabled,
+        teleprompterMode,
+        autoFallbackEnabled,
+        regionSelectBeforeOcr,
+        compactMode
       };
     }
 
@@ -3153,34 +3957,52 @@
         experience: String(tpl.experience || "").trim(),
         techStack: String(tpl.techStack || "").trim(),
         companyName: String(tpl.companyName || "").trim(),
-        keyDetails: String(tpl.keyDetails || "").trim()
+        keyDetails: String(tpl.keyDetails || "").trim(),
+        resumeText: String(tpl.resumeText || "").trim(),
+        jobDescription: String(tpl.jobDescription || "").trim()
       };
       customTemplate = String(tpl.customTemplate || "").trim();
       interviewMode = tpl.interviewMode !== false;
+      answerStyle = String(tpl.answerStyle || "deep_technical").trim() || "deep_technical";
+      autoSendOnSilence = Boolean(tpl.autoSendOnSilence);
+      contextWindowEnabled = tpl.contextWindowEnabled !== false;
+      teleprompterMode = Boolean(tpl.teleprompterMode);
+      autoFallbackEnabled = tpl.autoFallbackEnabled !== false;
+      regionSelectBeforeOcr = tpl.regionSelectBeforeOcr !== false;
+      compactMode = Boolean(tpl.compactMode);
       syncTemplateSettingsUi();
     }
 
-    async function persistAccountSettings({ apiKeys = null, templateSettings = null } = {}) {
-      const payload = {};
-      if (apiKeys) payload.apiKeys = apiKeys;
-      if (templateSettings) payload.templateSettings = templateSettings;
-      const res = await authFetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not save settings.");
-      if (data.apiKeys) {
-        for (const p of API_KEY_PROVIDERS) {
-          userApiKeys[p] = String(data.apiKeys[p] || "").trim();
+    let settingsSaveQueue = Promise.resolve();
+    let settingsSaveSeq = 0;
+
+    function persistAccountSettings({ apiKeys = null, templateSettings = null } = {}) {
+      const seq = ++settingsSaveSeq;
+      const run = async () => {
+        const payload = {};
+        if (apiKeys) payload.apiKeys = apiKeys;
+        if (templateSettings) payload.templateSettings = templateSettings;
+        const res = await authFetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Could not save settings.");
+        if (data.apiKeys && seq === settingsSaveSeq) {
+          for (const p of API_KEY_PROVIDERS) {
+            userApiKeys[p] = String(data.apiKeys[p] || "").trim();
+          }
+          syncKeyInputsFromState();
         }
-      }
-      if (data.templateSettings) {
-        applyServerTemplateSettings(data.templateSettings);
-      }
-      syncKeyInputsFromState();
-      return data;
+        if (data.templateSettings && seq === settingsSaveSeq) {
+          applyServerTemplateSettings(data.templateSettings);
+        }
+        return data;
+      };
+      const next = settingsSaveQueue.then(run, run);
+      settingsSaveQueue = next.catch(() => {});
+      return next;
     }
 
     async function persistUserApiKeys(keysObject) {
@@ -3216,10 +4038,139 @@
       } catch {}
     }
 
+    async function updateAnswerStylePreset(nextStyle) {
+      answerStyle = nextStyle || "deep_technical";
+      if (answerStyleSelect) answerStyleSelect.value = answerStyle;
+      if (drawerAnswerStyleSelect) drawerAnswerStyleSelect.value = answerStyle;
+      const labels = {
+        quick_spoken: "Quick Spoken (20-30s)",
+        deep_technical: "Deep Technical (5-Step)",
+        coding_dsa: "Coding / DSA",
+        system_design: "System Design",
+        behavioral_star: "Behavioral / STAR"
+      };
+      status.textContent = `Answer mode set to ${labels[answerStyle] || answerStyle}.`;
+      try {
+        await persistAccountSettings({ templateSettings: { answerStyle } });
+      } catch {}
+    }
+
+    answerStyleSelect?.addEventListener("change", () => updateAnswerStylePreset(answerStyleSelect.value));
+    drawerAnswerStyleSelect?.addEventListener("change", () => updateAnswerStylePreset(drawerAnswerStyleSelect.value));
+
+    autoSendSilenceToggle?.addEventListener("change", async () => {
+      autoSendOnSilence = autoSendSilenceToggle.checked;
+      status.textContent = autoSendOnSilence
+        ? "Auto-Send on Silence ON — submits automatically after 1.8s silence while listening."
+        : "Auto-Send on Silence OFF.";
+      try {
+        await persistAccountSettings({ templateSettings: { autoSendOnSilence } });
+      } catch {}
+    });
+
+    contextWindowToggle?.addEventListener("change", async () => {
+      contextWindowEnabled = contextWindowToggle.checked;
+      status.textContent = contextWindowEnabled
+        ? "Follow-up Context Window ON — AI remembers the last 3 turns."
+        : "Follow-up Context Window OFF.";
+      try {
+        await persistAccountSettings({ templateSettings: { contextWindowEnabled } });
+      } catch {}
+    });
+
+    teleprompterToggle?.addEventListener("change", async () => {
+      teleprompterMode = teleprompterToggle.checked;
+      applyVisualModesToDom();
+      status.textContent = teleprompterMode
+        ? "Teleprompter Highlighting ON — key anchor phrases highlighted for rapid eye scan."
+        : "Teleprompter Highlighting OFF.";
+      try {
+        await persistAccountSettings({ templateSettings: { teleprompterMode } });
+      } catch {}
+    });
+
+    autoFallbackToggle?.addEventListener("change", async () => {
+      autoFallbackEnabled = autoFallbackToggle.checked;
+      status.textContent = autoFallbackEnabled
+        ? "Multi-Provider Auto-Fallback ON."
+        : "Multi-Provider Auto-Fallback OFF.";
+      try {
+        await persistAccountSettings({ templateSettings: { autoFallbackEnabled } });
+      } catch {}
+    });
+
+    regionSelectToggle?.addEventListener("change", async () => {
+      regionSelectBeforeOcr = regionSelectToggle.checked;
+      status.textContent = regionSelectBeforeOcr
+        ? "Region-Select Screen Crop ON."
+        : "Region-Select Screen Crop OFF (runs direct full-screen OCR).";
+      try {
+        await persistAccountSettings({ templateSettings: { regionSelectBeforeOcr } });
+      } catch {}
+    });
+
+    compactModeToggle?.addEventListener("change", async () => {
+      compactMode = compactModeToggle.checked;
+      applyVisualModesToDom();
+      status.textContent = compactMode
+        ? "Compact Floating Mode ON."
+        : "Compact Floating Mode OFF.";
+      try {
+        await persistAccountSettings({ templateSettings: { compactMode } });
+      } catch {}
+    });
+
+    windowOpacitySlider?.addEventListener("input", () => {
+      const pct = Number(windowOpacitySlider.value || 96);
+      if (windowOpacityValue) windowOpacityValue.textContent = `${pct}%`;
+      const ratio = Math.max(0.4, Math.min(1, pct / 100));
+      if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.setOpacity === "function") {
+        window.aiBridgeDesktop.setOpacity(ratio).catch(() => {});
+      } else {
+        workspaceView.style.opacity = String(ratio);
+      }
+    });
+
+    alwaysOnTopToggle?.addEventListener("change", () => {
+      if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.setAlwaysOnTop === "function") {
+        window.aiBridgeDesktop.setAlwaysOnTop(alwaysOnTopToggle.checked).catch(() => {});
+        status.textContent = alwaysOnTopToggle.checked ? "Window pinned Always On Top." : "Always On Top disabled.";
+      } else {
+        status.textContent = "Always On Top is available in the Electron desktop build.";
+      }
+    });
+
+    stealthProtectToggle?.addEventListener("change", () => {
+      if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.setContentProtection === "function") {
+        window.aiBridgeDesktop.setContentProtection(stealthProtectToggle.checked).catch(() => {});
+        status.textContent = stealthProtectToggle.checked
+          ? "Screen-Share Content Protection enabled (Electron desktop)."
+          : "Screen-Share Content Protection disabled.";
+      } else {
+        status.textContent = "OS Screen-Share Protection requires the Electron desktop app.";
+      }
+    });
+
+    uploadResumeFileBtn?.addEventListener("click", () => resumeFileInput?.click());
+    resumeFileInput?.addEventListener("change", async () => {
+      const file = resumeFileInput.files?.[0];
+      resumeFileInput.value = "";
+      if (!file) return;
+      try {
+        const text = await file.text();
+        if (profileResumeInput) {
+          profileResumeInput.value = text.slice(0, 6000);
+          status.textContent = `Loaded resume text from ${file.name} (${profileResumeInput.value.length} chars). Click Save Settings to store in MongoDB.`;
+        }
+      } catch (err) {
+        status.textContent = `⚠️ Could not read resume file: ${err?.message || "Invalid file"}`;
+      }
+    });
+
     interviewModeToggle.addEventListener("change", async () => {
       interviewMode = interviewModeToggle.checked;
       status.textContent = interviewMode
-        ? "Interview Mode ON — answers follow the 5-step interview structure."
+        ? "Interview Mode ON — answers follow the active round preset."
         : "Interview Mode OFF — sending prompts directly.";
       try {
         await persistAccountSettings({ templateSettings: { interviewMode } });
@@ -3232,7 +4183,6 @@
       drawerKeysFeedback.textContent = "";
 
       if (directApiMode) {
-        // Automatically select a model that has a saved user API key if the current one does not
         const configuredCallable = getConfiguredProviders(userApiKeys).filter((p) => p !== "duckai");
         if (!getActiveKey() && configuredCallable.length > 0) {
           selectProviderUiOnly(configuredCallable[0]);
@@ -3299,6 +4249,8 @@
       if (profileTechStackInput) profileTechStackInput.value = "";
       if (profileCompanyInput) profileCompanyInput.value = "";
       if (profileKeyDetailsInput) profileKeyDetailsInput.value = "";
+      if (profileResumeInput) profileResumeInput.value = "";
+      if (profileJdInput) profileJdInput.value = "";
     });
     saveSettingsBtn.addEventListener("click", async () => {
       saveSettingsBtn.disabled = true;
@@ -3315,7 +4267,7 @@
         settingsModal.classList.remove("active");
         renderDirectApiState();
         updateBadge();
-        status.textContent = "Settings, interview profile & API keys saved to MongoDB.";
+        status.textContent = "Settings, resume, interview profile & API keys saved to MongoDB.";
       } catch (err) {
         status.textContent = `⚠️ ${err.message}`;
       } finally {
@@ -3624,11 +4576,27 @@
       });
     });
 
-    function addBubble(text, type, provider) {
+    function renderAiFollowupBarHtml(showActions = true) {
+      if (!showActions) return "";
+      return `
+        <div class="ai-followup-bar">
+          <button type="button" class="ai-followup-btn" data-followup="Make that shorter so I can say it in 20 seconds.">Shorter</button>
+          <button type="button" class="ai-followup-btn" data-followup="Convert that into 4 concise speakable bullet points.">Speakable Bullets</button>
+          <button type="button" class="ai-followup-btn" data-followup="Show only the clean runnable code solution with brief inline comments.">Code Only</button>
+          <button type="button" class="ai-followup-btn" data-followup="What are the top edge cases, pitfalls, and time/space trade-offs?">Edge Cases</button>
+          <button type="button" class="ai-followup-btn" data-bookmark-reply="1" style="margin-left:auto;">⭐ Save</button>
+        </div>
+      `;
+    }
+
+    function addBubble(text, type, provider, options = {}) {
       const el = document.createElement("div");
       el.className = `bubble ${type}`;
       if (type === "ai") {
-        el.innerHTML = `<div class="ai-header">${escapeHtml(provider || selectedProvider)}</div><div class="content">${formatMarkdown(text)}</div>`;
+        const showActions = options.showActions !== false && Boolean(String(text || "").trim());
+        el.dataset.rawAnswer = String(text || "");
+        el.dataset.provider = String(provider || selectedProvider);
+        el.innerHTML = `<div class="ai-header">${escapeHtml(provider || selectedProvider)}</div><div class="content">${formatMarkdown(text)}</div>${renderAiFollowupBarHtml(showActions)}`;
       } else {
         el.textContent = text;
       }
@@ -3636,6 +4604,55 @@
       chat.scrollTop = chat.scrollHeight;
       return el;
     }
+
+    chat.addEventListener("click", async (e) => {
+      const followBtn = e.target.closest("[data-followup]");
+      if (followBtn && !isGenerating) {
+        input.value = followBtn.dataset.followup;
+        autoResizeTextarea();
+        form.requestSubmit();
+        return;
+      }
+
+      const bmBtn = e.target.closest("[data-bookmark-reply]");
+      if (bmBtn) {
+        const bubbleEl = bmBtn.closest(".bubble.ai");
+        if (!bubbleEl) return;
+        const answerText = bubbleEl.dataset.rawAnswer || bubbleEl.querySelector(".content")?.textContent || "";
+        let prevEl = bubbleEl.previousElementSibling;
+        let questionText = "";
+        while (prevEl) {
+          if (prevEl.classList.contains("user")) {
+            questionText = prevEl.textContent || "";
+            break;
+          }
+          prevEl = prevEl.previousElementSibling;
+        }
+        bmBtn.disabled = true;
+        try {
+          const res = await authFetch("/api/bookmarks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question: questionText || "Interview Answer",
+              answer: answerText,
+              provider: bubbleEl.dataset.provider || selectedProvider,
+              answerStyle,
+              chatId: activeChatId
+            })
+          });
+          if (!res.ok) throw new Error("Failed to bookmark.");
+          bmBtn.textContent = "✓ Saved";
+          bmBtn.classList.add("saved");
+          status.textContent = "Saved Q&A to your Revision folder in MongoDB.";
+          loadUserBookmarks();
+        } catch (err) {
+          status.textContent = `⚠️ ${err.message}`;
+        } finally {
+          bmBtn.disabled = false;
+        }
+      }
+    });
 
     function autoResizeTextarea() {
       input.style.height = "50px";
@@ -3743,25 +4760,186 @@
       hideFallbackBar();
     }
 
+    // ----------------- REGION-SELECT CROPPER + OCR + VISION -----------------
+    const regionCropModal = document.querySelector("#regionCropModal");
+    const regionCropCanvas = document.querySelector("#regionCropCanvas");
+    const cropSelectionHint = document.querySelector("#cropSelectionHint");
+    const cropCancelBtn = document.querySelector("#cropCancelBtn");
+    const cropFullBtn = document.querySelector("#cropFullBtn");
+    const cropVisionBtn = document.querySelector("#cropVisionBtn");
+    const cropOcrBtn = document.querySelector("#cropOcrBtn");
+
+    let cropState = null;
+
+    function getCropSelectionRect() {
+      if (!cropState || !cropState.sel) return null;
+      const { x0, y0, x1, y1 } = cropState.sel;
+      const left = Math.min(x0, x1);
+      const top = Math.min(y0, y1);
+      const w = Math.abs(x1 - x0);
+      const h = Math.abs(y1 - y0);
+      if (w < 12 || h < 12) return null;
+      return { left, top, w, h };
+    }
+
+    function drawCropCanvas() {
+      if (!cropState || !regionCropCanvas) return;
+      const ctx = regionCropCanvas.getContext("2d");
+      ctx.clearRect(0, 0, regionCropCanvas.width, regionCropCanvas.height);
+      ctx.drawImage(cropState.img, 0, 0, regionCropCanvas.width, regionCropCanvas.height);
+      const rect = getCropSelectionRect();
+      if (rect) {
+        ctx.fillStyle = "rgba(2, 6, 23, 0.52)";
+        ctx.fillRect(0, 0, regionCropCanvas.width, regionCropCanvas.height);
+        ctx.drawImage(
+          cropState.img,
+          rect.left,
+          rect.top,
+          rect.w,
+          rect.h,
+          rect.left,
+          rect.top,
+          rect.w,
+          rect.h
+        );
+        ctx.strokeStyle = "#3b82f6";
+        ctx.lineWidth = Math.max(2, Math.round(regionCropCanvas.width / 420));
+        ctx.strokeRect(rect.left, rect.top, rect.w, rect.h);
+        if (cropSelectionHint) {
+          cropSelectionHint.textContent = `Selected area: ${Math.round(rect.w)} × ${Math.round(rect.h)} px`;
+        }
+      } else if (cropSelectionHint) {
+        cropSelectionHint.textContent = "No selection drawn yet (full screen if none selected).";
+      }
+    }
+
+    function buildCroppedImageDataUrl(useFull = false) {
+      if (!cropState || !regionCropCanvas) return "";
+      const rect = useFull ? null : getCropSelectionRect();
+      const outCanvas = document.createElement("canvas");
+      if (rect) {
+        outCanvas.width = Math.round(rect.w);
+        outCanvas.height = Math.round(rect.h);
+        outCanvas.getContext("2d").drawImage(cropState.img, rect.left, rect.top, rect.w, rect.h, 0, 0, outCanvas.width, outCanvas.height);
+      } else {
+        outCanvas.width = cropState.img.naturalWidth || regionCropCanvas.width;
+        outCanvas.height = cropState.img.naturalHeight || regionCropCanvas.height;
+        outCanvas.getContext("2d").drawImage(cropState.img, 0, 0, outCanvas.width, outCanvas.height);
+      }
+      const url = outCanvas.toDataURL("image/png");
+      outCanvas.width = 0;
+      outCanvas.height = 0;
+      return url;
+    }
+
+    function canvasClientToPoint(e) {
+      const box = regionCropCanvas.getBoundingClientRect();
+      const scaleX = regionCropCanvas.width / (box.width || 1);
+      const scaleY = regionCropCanvas.height / (box.height || 1);
+      return {
+        x: Math.max(0, Math.min(regionCropCanvas.width, (e.clientX - box.left) * scaleX)),
+        y: Math.max(0, Math.min(regionCropCanvas.height, (e.clientY - box.top) * scaleY))
+      };
+    }
+
+    regionCropCanvas?.addEventListener("mousedown", (e) => {
+      if (!cropState) return;
+      const pt = canvasClientToPoint(e);
+      cropState.dragging = true;
+      cropState.sel = { x0: pt.x, y0: pt.y, x1: pt.x, y1: pt.y };
+      drawCropCanvas();
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!cropState || !cropState.dragging) return;
+      const pt = canvasClientToPoint(e);
+      cropState.sel.x1 = pt.x;
+      cropState.sel.y1 = pt.y;
+      drawCropCanvas();
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (cropState && cropState.dragging) {
+        cropState.dragging = false;
+        drawCropCanvas();
+      }
+    });
+
+    function openRegionCropDialog(imageDataUrl) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          regionCropCanvas.width = img.naturalWidth || img.width;
+          regionCropCanvas.height = img.naturalHeight || img.height;
+          cropState = { img, dragging: false, sel: null, resolve };
+          drawCropCanvas();
+          regionCropModal.classList.add("active");
+        };
+        img.onerror = () => resolve({ action: "ocr", imageDataUrl });
+        img.src = imageDataUrl;
+      });
+    }
+
+    function closeRegionCropDialog(result) {
+      regionCropModal?.classList.remove("active");
+      const r = cropState?.resolve;
+      cropState = null;
+      if (r) r(result);
+    }
+
+    cropCancelBtn?.addEventListener("click", () => closeRegionCropDialog({ action: "cancel" }));
+    cropFullBtn?.addEventListener("click", () => closeRegionCropDialog({ action: "ocr", imageDataUrl: buildCroppedImageDataUrl(true) }));
+    cropOcrBtn?.addEventListener("click", () => closeRegionCropDialog({ action: "ocr", imageDataUrl: buildCroppedImageDataUrl(false) }));
+    cropVisionBtn?.addEventListener("click", () => closeRegionCropDialog({ action: "vision", imageDataUrl: buildCroppedImageDataUrl(false) }));
+
+    async function processCapturedImageDataUrl(imageDataUrl) {
+      let chosenAction = "ocr";
+      let targetImageUrl = imageDataUrl;
+
+      if (regionSelectBeforeOcr) {
+        const decision = await openRegionCropDialog(imageDataUrl);
+        if (!decision || decision.action === "cancel") {
+          status.textContent = "Screen capture cancelled.";
+          return;
+        }
+        chosenAction = decision.action;
+        targetImageUrl = decision.imageDataUrl || imageDataUrl;
+      }
+
+      if (chosenAction === "vision") {
+        setPendingVisionImage(targetImageUrl, "Cropped screen image attached for Vision AI (Gemini / ChatGPT / Claude).");
+        if (!input.value.trim()) {
+          input.value = "Analyze this screenshot (code/diagram/question) and explain the optimal solution.";
+          autoResizeTextarea();
+        }
+        input.focus();
+        status.textContent = "Cropped image attached for Direct API Vision. Click Send when ready.";
+        hideFallbackBar();
+        return;
+      }
+
+      status.textContent = "Running local Tesseract.js OCR on image...";
+      const response = await authFetch("/api/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageDataUrl: targetImageUrl })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Local OCR extraction failed.");
+      }
+      applyOcrResultToInput(data);
+    }
+
     async function runOcrOnImageBlob(blob) {
       if (isReadingScreen) return;
       isReadingScreen = true;
       readScreenBtn.disabled = true;
       readScreenIcon.innerHTML = `<span class="ocr-spinner"></span>`;
       readScreenText.textContent = "Reading...";
-      status.textContent = "Running local Tesseract.js OCR on image...";
       try {
         const imageDataUrl = await imageFileOrBlobToPngDataUrl(blob);
-        const response = await authFetch("/api/ocr", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageDataUrl })
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.ok) {
-          throw new Error(data.error || "Local OCR extraction failed.");
-        }
-        applyOcrResultToInput(data);
+        await processCapturedImageDataUrl(imageDataUrl);
       } catch (err) {
         status.textContent = `⚠️ Read Screen: ${err?.message || "Failed to read image."}`;
       } finally {
@@ -3831,7 +5009,7 @@
       }
     });
 
-    async function captureScreenInBrowserFallback() {
+    async function captureScreenImageDataUrlInBrowser() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
         const err = new Error("Display capture is unavailable in this embedded preview.");
         err.code = "DISPLAY_CAPTURE_BLOCKED";
@@ -3877,24 +5055,13 @@
         video.srcObject = null;
         canvas.width = 0;
         canvas.height = 0;
-
-        status.textContent = "Running local OCR on captured screen...";
-        const response = await authFetch("/api/ocr", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageDataUrl })
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.ok) {
-          throw new Error(data.error || "Local OCR extraction failed.");
-        }
-        return data;
+        return imageDataUrl;
       } finally {
         if (stream) stream.getTracks().forEach((track) => track.stop());
       }
     }
 
-    readScreenBtn.addEventListener("click", async () => {
+    async function triggerReadScreenCapture() {
       if (isReadingScreen) return;
       isReadingScreen = true;
       readScreenBtn.disabled = true;
@@ -3902,15 +5069,23 @@
       readScreenText.textContent = "Reading...";
 
       try {
-        let result;
-        if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.readScreen === "function") {
-          status.textContent = "Hiding floating window, capturing screen, and running local OCR...";
-          result = await window.aiBridgeDesktop.readScreen();
-        } else {
-          status.textContent = "Select a screen or window to read via local OCR...";
-          result = await captureScreenInBrowserFallback();
+        if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.captureScreenImage === "function" && regionSelectBeforeOcr) {
+          status.textContent = "Hiding floating window & capturing screenshot for region selection...";
+          const cap = await window.aiBridgeDesktop.captureScreenImage();
+          if (cap?.imageDataUrl) {
+            await processCapturedImageDataUrl(cap.imageDataUrl);
+            return;
+          }
         }
-        applyOcrResultToInput(result);
+        if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.readScreen === "function" && !regionSelectBeforeOcr) {
+          status.textContent = "Hiding floating window, capturing screen, and running local OCR...";
+          const result = await window.aiBridgeDesktop.readScreen();
+          applyOcrResultToInput(result);
+          return;
+        }
+        status.textContent = "Select a screen or window to capture...";
+        const imageDataUrl = await captureScreenImageDataUrlInBrowser();
+        await processCapturedImageDataUrl(imageDataUrl);
       } catch (err) {
         if (err?.code === "DISPLAY_CAPTURE_BLOCKED") {
           showFallbackBar("screen");
@@ -3924,9 +5099,42 @@
         readScreenIcon.textContent = "📷";
         readScreenText.textContent = "Read Screen";
       }
-    });
+    }
 
-    // ----------------- LISTEN (System Speaker Audio -> Fast Voice-to-Text) -----------------
+    readScreenBtn.addEventListener("click", triggerReadScreenCapture);
+
+    // ----------------- LISTEN (System Speaker Audio -> Fast Voice-to-Text + 30s Ring Buffer + Auto-Send) -----------------
+    function cleanInterviewTranscriptClient(rawText) {
+      let text = String(rawText || "").replace(/\s+/g, " ").trim();
+      if (!text) return "";
+      const replacements = [
+        [/\b(no js|no\.?\s*js|node js)\b/gi, "Node.js"],
+        [/\b(react js|react\.js)\b/gi, "React"],
+        [/\b(next js|next\.js)\b/gi, "Next.js"],
+        [/\b(express js|express\.js)\b/gi, "Express.js"],
+        [/\b(use effect)\b/gi, "useEffect"],
+        [/\b(use state)\b/gi, "useState"],
+        [/\b(use memo)\b/gi, "useMemo"],
+        [/\b(use ref)\b/gi, "useRef"],
+        [/\b(use callback)\b/gi, "useCallback"],
+        [/\b(mongo db|mongo d\.?b\.?)\b/gi, "MongoDB"],
+        [/\b(mongos|mongoos)\b/gi, "Mongoose"],
+        [/\b(my sequel|my sql)\b/gi, "MySQL"],
+        [/\b(post gres|postgre sql)\b/gi, "PostgreSQL"],
+        [/\b(graph ql)\b/gi, "GraphQL"],
+        [/\b(type script)\b/gi, "TypeScript"],
+        [/\b(java script)\b/gi, "JavaScript"],
+        [/\b(web socket|web sockets)\b/gi, "WebSocket"],
+        [/\b(rest api|rest full)\b/gi, "REST API"],
+        [/\b(cube ernetes|coober nettes)\b/gi, "Kubernetes"],
+        [/\b(ci cd|c i c d)\b/gi, "CI/CD"]
+      ];
+      for (const [pattern, replacement] of replacements) {
+        text = text.replace(pattern, replacement);
+      }
+      return text;
+    }
+
     function downsampleFloat32ToInt16(float32Input, inputRate, targetRate = 16000) {
       if (!float32Input || !float32Input.length) return new Int16Array(0);
       if (inputRate === targetRate) {
@@ -3965,7 +5173,7 @@
     }
 
     function combineListenText(prefix, committed, interim) {
-      const voicePart = [committed, interim].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      const voicePart = cleanInterviewTranscriptClient([committed, interim].filter(Boolean).join(" ").replace(/\s+/g, " ").trim());
       if (!prefix) return voicePart;
       if (!voicePart) return prefix;
       const sep = prefix.endsWith("\n") || prefix.endsWith(" ") ? "" : " ";
@@ -3987,7 +5195,7 @@
         body: int16Arr.buffer
       });
       const data = await resp.json().catch(() => ({}));
-      if (resp.ok && data.ok && data.text) return data.text;
+      if (resp.ok && data.ok && data.text) return cleanInterviewTranscriptClient(data.text);
       return "";
     }
 
@@ -4000,6 +5208,10 @@
       const st = listenState;
       if (st.stopping) return;
       st.stopping = true;
+      if (st.autoSendTimer) {
+        clearTimeout(st.autoSendTimer);
+        st.autoSendTimer = null;
+      }
       listenBtn.disabled = true;
       listenText.textContent = "Finishing...";
       status.textContent = "Finalizing speech transcription...";
@@ -4048,11 +5260,13 @@
       } catch {}
 
       if (st.interimTranscript) {
-        st.committedTranscript = [st.committedTranscript, st.interimTranscript]
-          .filter(Boolean)
-          .join(" ")
-          .replace(/\s+/g, " ")
-          .trim();
+        st.committedTranscript = cleanInterviewTranscriptClient(
+          [st.committedTranscript, st.interimTranscript]
+            .filter(Boolean)
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim()
+        );
         st.interimTranscript = "";
         input.value = combineListenText(st.prefixText, st.committedTranscript, "");
         autoResizeTextarea();
@@ -4069,6 +5283,33 @@
         status.textContent = "Stopped listening (no speech detected in system audio).";
       }
     }
+
+    async function transcribeLast30SecondsNow() {
+      if (!listenState || !listenState.rollingPcmChunks.length) {
+        status.textContent = "Turn ON Listen first to buffer the last 30s of speaker audio (Alt+L).";
+        return;
+      }
+      if (isGenerating) return;
+      askLast30sBtn.disabled = true;
+      status.textContent = "Transcribing last 30s of buffered speaker audio...";
+      try {
+        const merged = concatInt16Chunks(listenState.rollingPcmChunks);
+        const text = await transcribeViaHttpFallback(merged);
+        if (!text) {
+          status.textContent = "⚠️ No speech detected in the last 30s buffer.";
+          return;
+        }
+        input.value = text;
+        autoResizeTextarea();
+        form.requestSubmit();
+      } catch (err) {
+        status.textContent = `⚠️ Last 30s replay failed: ${err?.message || "Unknown error"}`;
+      } finally {
+        askLast30sBtn.disabled = false;
+      }
+    }
+
+    askLast30sBtn?.addEventListener("click", transcribeLast30SecondsNow);
 
     async function transcribeAudioFile(file) {
       listenBtn.disabled = true;
@@ -4176,6 +5417,9 @@
         interimTranscript: "",
         preRollChunks: [],
         utteranceChunks: [],
+        rollingPcmChunks: [],
+        rollingPcmSamples: 0,
+        autoSendTimer: null,
         inSpeech: false,
         silenceMs: 0,
         utteranceMs: 0,
@@ -4186,8 +5430,21 @@
       };
       listenState = st;
 
+      const scheduleAutoSendIfEnabled = () => {
+        if (!autoSendOnSilence || st.stopping) return;
+        if (st.autoSendTimer) clearTimeout(st.autoSendTimer);
+        st.autoSendTimer = setTimeout(() => {
+          st.autoSendTimer = null;
+          if (!autoSendOnSilence || st.stopping || isGenerating) return;
+          if (!st.inSpeech && input.value.trim().length >= 8) {
+            status.textContent = "Silence detected — auto-sending question...";
+            form.requestSubmit();
+          }
+        }, 1800);
+      };
+
       const applyTranscriptChunk = (text, isInterim) => {
-        const clean = String(text || "").trim();
+        const clean = cleanInterviewTranscriptClient(text);
         if (!clean) return;
         if (isInterim) {
           st.interimTranscript = clean;
@@ -4201,6 +5458,7 @@
         }
         input.value = combineListenText(st.prefixText, st.committedTranscript, st.interimTranscript);
         autoResizeTextarea();
+        if (!isInterim) scheduleAutoSendIfEnabled();
       };
 
       const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -4292,11 +5550,20 @@
         const SPEECH_RMS_THRESHOLD = 0.008;
         const PAUSE_FLUSH_MS = 420;
         const MAX_UTTERANCE_MS = 4500;
+        const MAX_RING_SAMPLES = 16000 * 30;
 
         processor.onaudioprocess = (event) => {
           if (st.stopping) return;
           const samples = event.inputBuffer.getChannelData(0);
           const pcm16 = downsampleFloat32ToInt16(samples, audioCtx.sampleRate, 16000);
+
+          // Maintain rolling 30-second audio ring buffer
+          st.rollingPcmChunks.push(pcm16);
+          st.rollingPcmSamples += pcm16.length;
+          while (st.rollingPcmSamples > MAX_RING_SAMPLES && st.rollingPcmChunks.length > 1) {
+            const dropped = st.rollingPcmChunks.shift();
+            st.rollingPcmSamples -= dropped.length;
+          }
 
           if (st.engine === "gemini-live" && st.ws && st.ws.readyState === WebSocket.OPEN) {
             st.ws.send(pcm16.buffer);
@@ -4308,6 +5575,10 @@
           const rms = Math.sqrt(sumSq / samples.length);
 
           if (rms >= SPEECH_RMS_THRESHOLD) {
+            if (st.autoSendTimer) {
+              clearTimeout(st.autoSendTimer);
+              st.autoSendTimer = null;
+            }
             if (!st.inSpeech && st.preRollChunks.length > 0) {
               st.utteranceChunks.push(...st.preRollChunks);
               st.preRollChunks = [];
@@ -4340,7 +5611,7 @@
         listenBtn.classList.add("listening");
         listenIcon.innerHTML = `<span class="listen-dot"></span>`;
         listenText.textContent = "Stop";
-        status.textContent = "Listening to system speaker audio (opponent voice only) — speech appears in input box...";
+        status.textContent = "Listening to system speaker audio (30s rolling buffer active) — speech appears in input box...";
       } catch (err) {
         await stopListening();
         status.textContent = `⚠️ Listen audio setup failed: ${err?.message || "Unknown error."}`;
@@ -4354,6 +5625,52 @@
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         form.requestSubmit();
+      }
+    });
+
+    // Global & In-App Keyboard Shortcuts + Electron IPC hook
+    function handleWorkspaceShortcut(action) {
+      if (!currentUser || workspaceView.classList.contains("view-hidden")) return;
+      if (action === "toggle-listen") {
+        startListening();
+      } else if (action === "ask-last-30s") {
+        transcribeLast30SecondsNow();
+      } else if (action === "read-screen") {
+        triggerReadScreenCapture();
+      } else if (action === "send-message") {
+        if (input.value.trim() && !isGenerating) form.requestSubmit();
+      } else if (action === "clear-input") {
+        input.value = "";
+        setPendingVisionImage("");
+        autoResizeTextarea();
+        input.focus();
+        status.textContent = "Input cleared.";
+      }
+    }
+
+    if (window.aiBridgeDesktop && typeof window.aiBridgeDesktop.onShortcut === "function") {
+      window.aiBridgeDesktop.onShortcut((action) => handleWorkspaceShortcut(action));
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!currentUser || workspaceView.classList.contains("view-hidden")) return;
+      if (!e.altKey || e.ctrlKey || e.metaKey) return;
+      const k = String(e.key || "").toLowerCase();
+      if (k === "l") {
+        e.preventDefault();
+        handleWorkspaceShortcut("toggle-listen");
+      } else if (k === "a") {
+        e.preventDefault();
+        handleWorkspaceShortcut("ask-last-30s");
+      } else if (k === "r") {
+        e.preventDefault();
+        handleWorkspaceShortcut("read-screen");
+      } else if (k === "x") {
+        e.preventDefault();
+        handleWorkspaceShortcut("clear-input");
+      } else if (k === "m") {
+        e.preventDefault();
+        setRightMenuOpen(!rightMenuDrawer.classList.contains("open"));
       }
     });
 
@@ -4382,15 +5699,22 @@
           ? `No API key is saved for ${label}. Enter a ${label} API key in the right menu, switch to a model with a saved key (${configuredCallable.map(providerLabel).join(", ")}), or turn off Direct API for Browser Bridge.`
           : `No user API key is configured. Add your own API key in the right menu to receive Direct API responses (we do not provide central API keys), or turn off Direct API for Browser Bridge.`;
         status.textContent = `⚠️ ${hintMsg}`;
-        addBubble(`⚠️ **API Key Required:** ${hintMsg}`, "ai", "AI Bridge");
+        addBubble(`⚠️ **API Key Required:** ${hintMsg}`, "ai", "AI Bridge", { showActions: false });
         return;
       }
 
       if (listenState && !listenState.stopping) {
+        if (listenState.autoSendTimer) {
+          clearTimeout(listenState.autoSendTimer);
+          listenState.autoSendTimer = null;
+        }
         listenState.prefixText = "";
         listenState.committedTranscript = "";
         listenState.interimTranscript = "";
       }
+
+      const attachedImageDataUrl = pendingVisionImageDataUrl;
+      setPendingVisionImage("");
 
       addBubble(message, "user");
       input.value = "";
@@ -4403,7 +5727,7 @@
       const label = providerLabel(provider);
       status.textContent = `${label} is thinking...`;
 
-      const aiBubble = addBubble("", "ai", label);
+      const aiBubble = addBubble("", "ai", label, { showActions: false });
       const contentEl = aiBubble.querySelector(".content");
       contentEl.innerHTML = `<span class="cursor-blink"></span>`;
 
@@ -4418,6 +5742,11 @@
             provider,
             directApiMode,
             interviewMode,
+            answerStyle,
+            contextWindowEnabled,
+            teleprompterMode,
+            autoFallbackEnabled,
+            imageDataUrl: attachedImageDataUrl,
             customTemplate,
             interviewProfile,
             chatId: activeChatId,
@@ -4459,16 +5788,30 @@
                 loadUserChats();
               } else if (data.type === "info" && data.text) {
                 status.textContent = data.text;
+                if (data.provider) {
+                  const hdr = aiBubble.querySelector(".ai-header");
+                  if (hdr) hdr.textContent = providerLabel(data.provider);
+                  aiBubble.dataset.provider = data.provider;
+                }
               } else if (data.type === "chunk" && data.text) {
                 fullText = data.text;
                 contentEl.innerHTML = formatMarkdown(fullText) + `<span class="cursor-blink"></span>`;
-                status.textContent = `${label} is typing...`;
+                status.textContent = `${providerLabel(aiBubble.dataset.provider || provider)} is typing...`;
                 chat.scrollTop = chat.scrollHeight;
               } else if (data.type === "done" && data.text) {
                 fullText = data.text;
                 if (data.chatId) activeChatId = data.chatId;
+                if (data.provider) {
+                  const hdr = aiBubble.querySelector(".ai-header");
+                  if (hdr) hdr.textContent = providerLabel(data.provider);
+                  aiBubble.dataset.provider = data.provider;
+                }
+                aiBubble.dataset.rawAnswer = fullText;
                 contentEl.innerHTML = formatMarkdown(fullText);
-                status.textContent = `${label} completed response.`;
+                if (!aiBubble.querySelector(".ai-followup-bar")) {
+                  aiBubble.insertAdjacentHTML("beforeend", renderAiFollowupBarHtml(true));
+                }
+                status.textContent = `${providerLabel(aiBubble.dataset.provider || provider)} completed response.`;
                 chat.scrollTop = chat.scrollHeight;
                 loadUserChats();
               } else if (data.type === "error") {
@@ -4481,7 +5824,11 @@
         }
 
         if (fullText) {
+          aiBubble.dataset.rawAnswer = fullText;
           contentEl.innerHTML = formatMarkdown(fullText);
+          if (!aiBubble.querySelector(".ai-followup-bar")) {
+            aiBubble.insertAdjacentHTML("beforeend", renderAiFollowupBarHtml(true));
+          }
         }
       } catch (error) {
         if (error.name === "AbortError") {

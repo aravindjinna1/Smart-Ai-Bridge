@@ -14,7 +14,7 @@ if (typeof electron === "string") {
   return;
 }
 
-const { app, BrowserWindow, ipcMain, desktopCapturer, screen, session } = electron;
+const { app, BrowserWindow, ipcMain, desktopCapturer, screen, session, globalShortcut } = electron;
 const http = require("http");
 const { spawn } = require("child_process");
 const path = require("path");
@@ -23,6 +23,8 @@ const { extractTextFromImageBuffer, terminateOcrWorker } = require("./ocr-servic
 let serverProcess = null;
 let mainWin = null;
 let captureInProgress = false;
+let currentOpacity = 0.88;
+let normalBounds = { width: 900, height: 550 };
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -137,9 +139,9 @@ ipcMain.handle("ai-bridge:read-screen", async (event) => {
           wasVisible: senderWin.isVisible(),
           wasAlwaysOnTop: senderWin.isAlwaysOnTop(),
           wasFocused: senderWin.isFocused(),
-          opacity: 0.85
+          opacity: currentOpacity
         }
-      : { wasVisible: true, wasAlwaysOnTop: true, wasFocused: true, opacity: 0.85 };
+      : { wasVisible: true, wasAlwaysOnTop: true, wasFocused: true, opacity: currentOpacity };
 
     try {
       await waitForWindowHidden(senderWin);
@@ -162,6 +164,76 @@ ipcMain.handle("ai-bridge:read-screen", async (event) => {
     pngBuffer = null;
     captureInProgress = false;
   }
+});
+
+ipcMain.handle("ai-bridge:capture-screen-image", async (event) => {
+  if (captureInProgress) {
+    return { ok: false, code: "CAPTURE_IN_PROGRESS", error: "Screen capture is already in progress." };
+  }
+  captureInProgress = true;
+  const senderWin = BrowserWindow.fromWebContents(event.sender) || mainWin;
+  try {
+    const windowState = senderWin && !senderWin.isDestroyed()
+      ? {
+          wasVisible: senderWin.isVisible(),
+          wasAlwaysOnTop: senderWin.isAlwaysOnTop(),
+          wasFocused: senderWin.isFocused(),
+          opacity: currentOpacity
+        }
+      : { wasVisible: true, wasAlwaysOnTop: true, wasFocused: true, opacity: currentOpacity };
+
+    let pngBuffer = null;
+    try {
+      await waitForWindowHidden(senderWin);
+      pngBuffer = await captureVisibleScreenBuffer(senderWin);
+    } finally {
+      restoreWindow(senderWin, windowState);
+    }
+    const imageDataUrl = `data:image/png;base64,${pngBuffer.toString("base64")}`;
+    pngBuffer = null;
+    return { ok: true, imageDataUrl };
+  } catch (err) {
+    return { ok: false, error: err?.message || "Could not capture screen image." };
+  } finally {
+    captureInProgress = false;
+  }
+});
+
+ipcMain.handle("ai-bridge:set-opacity", (event, val) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || mainWin;
+  const clamped = Math.min(1, Math.max(0.35, Number(val) || 0.88));
+  currentOpacity = clamped;
+  if (win && !win.isDestroyed()) win.setOpacity(clamped);
+  return { ok: true, opacity: clamped };
+});
+
+ipcMain.handle("ai-bridge:set-always-on-top", (event, flag) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || mainWin;
+  const on = Boolean(flag);
+  if (win && !win.isDestroyed()) win.setAlwaysOnTop(on);
+  return { ok: true, alwaysOnTop: on };
+});
+
+ipcMain.handle("ai-bridge:set-content-protection", (event, flag) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || mainWin;
+  const on = Boolean(flag);
+  if (win && !win.isDestroyed()) win.setContentProtection(on);
+  return { ok: true, contentProtection: on };
+});
+
+ipcMain.handle("ai-bridge:set-compact-mode", (event, compact) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || mainWin;
+  if (!win || win.isDestroyed()) return { ok: false };
+  const isCompact = Boolean(compact);
+  if (isCompact) {
+    const b = win.getBounds();
+    if (b.width > 500) normalBounds = { width: b.width, height: b.height };
+    win.setSize(420, 620, true);
+    win.setAlwaysOnTop(true);
+  } else {
+    win.setSize(normalBounds.width || 900, normalBounds.height || 550, true);
+  }
+  return { ok: true, compact: isCompact };
 });
 
 // Connect app code: ensure the Express server (server.js) is running on Node
@@ -230,7 +302,26 @@ function createWindow() {
   win.setContentProtection(true);
 
   // Optional: adjust opacity for faint tint
-  win.setOpacity(0.85);
+  win.setOpacity(currentOpacity);
+}
+
+function registerDesktopShortcuts() {
+  const bindings = [
+    ["CommandOrControl+Shift+L", "toggle-listen"],
+    ["CommandOrControl+Shift+A", "ask-last-30s"],
+    ["CommandOrControl+Shift+R", "read-screen"],
+    ["CommandOrControl+Shift+S", "send-prompt"],
+    ["CommandOrControl+Shift+X", "clear-input"]
+  ];
+  for (const [accel, action] of bindings) {
+    try {
+      globalShortcut.register(accel, () => {
+        if (mainWin && !mainWin.isDestroyed()) {
+          mainWin.webContents.send("ai-bridge:shortcut", action);
+        }
+      });
+    } catch {}
+  }
 }
 
 app.whenReady().then(() => {
@@ -250,6 +341,7 @@ app.whenReady().then(() => {
     });
   }
   createWindow();
+  registerDesktopShortcuts();
 });
 
 app.on("window-all-closed", () => {
@@ -259,6 +351,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("will-quit", async () => {
+  globalShortcut.unregisterAll();
   await terminateOcrWorker();
   if (serverProcess) {
     serverProcess.kill();

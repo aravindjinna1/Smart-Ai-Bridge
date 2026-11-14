@@ -2,6 +2,7 @@ const { GoogleGenAI, Modality } = require("@google/genai");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
+const { cleanInterviewTranscript } = require("./interview-helpers");
 
 const WHISPER_MODEL = "onnx-community/whisper-tiny.en";
 const WHISPER_CACHE_DIR = path.join(os.tmpdir(), "ai-bridge-whisper");
@@ -143,7 +144,7 @@ function cleanTranscriptText(rawText, rms = 1) {
     return "";
   }
   if (/^[^\w]+$/.test(cleaned)) return "";
-  return cleaned;
+  return cleanInterviewTranscript(cleaned);
 }
 
 function wrapPcm16AsWav(pcmInt16Buffer, sampleRate = 16000) {

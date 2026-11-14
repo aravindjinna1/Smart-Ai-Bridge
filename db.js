@@ -77,14 +77,16 @@ function reviveDates(obj) {
 
 function createLocalDbFallback() {
   fs.mkdirSync(path.dirname(LOCAL_FALLBACK_FILE), { recursive: true });
-  let store = { users: [], password_resets: [], chats: [] };
+  let store = { users: [], password_resets: [], chats: [], templates: [], bookmarks: [] };
   if (fs.existsSync(LOCAL_FALLBACK_FILE)) {
     try {
       const parsed = JSON.parse(fs.readFileSync(LOCAL_FALLBACK_FILE, "utf8"));
       store = {
         users: reviveDates(parsed.users || []),
         password_resets: reviveDates(parsed.password_resets || []),
-        chats: reviveDates(parsed.chats || [])
+        chats: reviveDates(parsed.chats || []),
+        templates: reviveDates(parsed.templates || []),
+        bookmarks: reviveDates(parsed.bookmarks || [])
       };
     } catch {}
   }
@@ -219,7 +221,8 @@ async function connectToDatabase() {
         db.collection("password_resets").createIndex({ userId: 1 }),
         db.collection("password_resets").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
         db.collection("chats").createIndex({ userId: 1, updatedAt: -1 }),
-        db.collection("templates").createIndex({ userId: 1 }, { unique: true })
+        db.collection("templates").createIndex({ userId: 1 }, { unique: true }),
+        db.collection("bookmarks").createIndex({ userId: 1, createdAt: -1 })
       ]);
 
       client = mongoClient;
@@ -250,7 +253,8 @@ async function getCollections() {
     users: db.collection("users"),
     passwordResets: db.collection("password_resets"),
     chats: db.collection("chats"),
-    templates: db.collection("templates")
+    templates: db.collection("templates"),
+    bookmarks: db.collection("bookmarks")
   };
 }
 

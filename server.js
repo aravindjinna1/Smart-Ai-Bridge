@@ -38,6 +38,12 @@ const {
   renameUserChat,
   deleteUserChat
 } = require("./chat-history-service");
+const {
+  DEFAULT_INTERVIEW_TEMPLATE,
+  getUserTemplateSettings,
+  saveUserTemplateSettings,
+  buildPersonalizedProfileBlock
+} = require("./template-service");
 
 const GEMINI_URL = "https://gemini.google.com/app";
 const CHATGPT_URL = "https://chatgpt.com/";
@@ -197,16 +203,18 @@ function getBrowserChannel() {
     throw new Error('AI_BRIDGE_BROWSER must be set to "chrome" or "msedge".');
   }
 
-  const registryKey = "HKCU\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\https\\UserChoice";
-  try {
-    const output = execFileSync("reg.exe", ["query", registryKey, "/v", "ProgId"], {
-      encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"]
-    });
-    const progId = output.match(/ProgId\s+REG_SZ\s+(\S+)/i)?.[1] || "";
-    if (/edge/i.test(progId)) return "msedge";
-    if (/chrome/i.test(progId)) return "chrome";
-  } catch {
-    console.warn("Could not detect default browser; using Chrome.");
+  if (process.platform === "win32") {
+    const registryKey = "HKCU\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\https\\UserChoice";
+    try {
+      const output = execFileSync("reg.exe", ["query", registryKey, "/v", "ProgId"], {
+        encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"]
+      });
+      const progId = output.match(/ProgId\s+REG_SZ\s+(\S+)/i)?.[1] || "";
+      if (/edge/i.test(progId)) return "msedge";
+      if (/chrome/i.test(progId)) return "chrome";
+    } catch {
+      console.log("Could not detect default Windows browser; using Chrome.");
+    }
   }
   return "chrome";
 }
@@ -1093,49 +1101,36 @@ app.delete("/api/chats/:id", requireAuth, async (req, res) => {
 
 // ----------------- API Endpoints -----------------
 
-const DEFAULT_INTERVIEW_TEMPLATE = [
-  "Answer clearly in natural, conversational, interview-ready English without heavy jargon so I can speak or deliver this directly in an interview.",
-  "Format the response cleanly with Markdown headings (##), concise bullet points, **bold** key terms, and labeled fenced code blocks (```language) whenever code helps explain the concept.",
-  "",
-  "For technical or programming questions, strictly follow these 5 steps:",
-  "## 1. Definition (What is it?)",
-  "Start with a simple, technically accurate definition.",
-  "",
-  "## 2. Purpose (Why do we use it?)",
-  "Explain the problem it solves or why developers need it.",
-  "",
-  "## 3. Working (How does it work?)",
-  "Explain its internal working or execution flow clearly step by step.",
-  "",
-  "## 4. Practical Example (Where do we use it?)",
-  "Give a real-world development example, preferably from MERN projects, and include a clean code snippet if helpful.",
-  "",
-  "## 5. Important Point (What should we remember?)",
-  "Mention a limitation, advantage, best practice, or common mistake.",
-  "",
-  "If the question is a Multiple-Choice Question (MCQ) or non-technical HR question, answer naturally using clear headings without forcing code."
-].join("\n");
-
 function buildFinalPrompt(rawQuestion, options = {}) {
   const screenEnriched = enrichScreenPrompt(rawQuestion);
   const interviewMode = options.interviewMode !== false;
   if (!interviewMode) return screenEnriched;
 
+  const profileBlock = buildPersonalizedProfileBlock(options.profile || {});
+
   // Keep Read Screen MCQ formatting priority intact if screen OCR content is present
   if (screenEnriched.includes("[MULTIPLE-CHOICE & ACCURACY GUIDELINES]")) {
-    return `${screenEnriched}\n\n[DELIVERY STYLE]\nUse clear, simple, interview-ready English with clean Markdown headings, bullets, and code blocks where helpful.`;
+    return [
+      screenEnriched,
+      profileBlock,
+      "[DELIVERY STYLE]\nUse clear, simple, interview-ready English with clean Markdown headings, bullets, and code blocks where helpful."
+    ].filter(Boolean).join("\n\n");
   }
 
   const template = String(options.customTemplate || "").trim() || DEFAULT_INTERVIEW_TEMPLATE;
-  return `${template}\n\nQuestion:\n${screenEnriched}`;
+  return [template, profileBlock, `Question:\n${screenEnriched}`].filter(Boolean).join("\n\n");
 }
 
-// Per-user API Keys / Settings endpoint (no central/developer API keys)
+// Per-user API Keys, Personalized Interview Profile & Template Settings endpoint (MongoDB backed)
 app.get("/api/settings", requireAuth, async (req, res) => {
   try {
-    const userKeys = await getUserApiKeys(req.user.userId);
+    const [userKeys, templateSettings] = await Promise.all([
+      getUserApiKeys(req.user.userId),
+      getUserTemplateSettings(req.user.userId)
+    ]);
     res.json({
       apiKeys: userKeys,
+      templateSettings,
       geminiKeySet: Boolean(userKeys.gemini),
       deepaiKeySet: Boolean(userKeys.deepai),
       chatgptKeySet: Boolean(userKeys.chatgpt),
@@ -1144,6 +1139,7 @@ app.get("/api/settings", requireAuth, async (req, res) => {
       duckaiKeySet: Boolean(userKeys.duckai),
       claudeKeySet: Boolean(userKeys.claude),
       defaultInterviewTemplate: DEFAULT_INTERVIEW_TEMPLATE,
+      db: getDbStatus(),
       configuredBrowser: isHeadlessCloudEnv()
         ? "Chromium (Cloud Headless)"
         : getBrowserChannel() === "msedge" ? "Microsoft Edge" : "Google Chrome"
@@ -1155,21 +1151,69 @@ app.get("/api/settings", requireAuth, async (req, res) => {
 
 app.post("/api/settings", requireAuth, async (req, res) => {
   try {
-    const incoming = req.body?.apiKeys && typeof req.body.apiKeys === "object"
-      ? { ...req.body.apiKeys }
-      : {};
-    if (req.body?.geminiKey !== undefined) incoming.gemini = req.body.geminiKey;
-    if (req.body?.deepaiKey !== undefined) incoming.deepai = req.body.deepaiKey;
-    if (req.body?.chatgptKey !== undefined) incoming.chatgpt = req.body.chatgptKey;
-    if (req.body?.deepseekKey !== undefined) incoming.deepseek = req.body.deepseekKey;
-    if (req.body?.perplexityKey !== undefined) incoming.perplexity = req.body.perplexityKey;
-    if (req.body?.duckaiKey !== undefined) incoming.duckai = req.body.duckaiKey;
-    if (req.body?.claudeKey !== undefined) incoming.claude = req.body.claudeKey;
+    const body = req.body || {};
+    const hasApiKeyUpdate = Boolean(
+      (body.apiKeys && typeof body.apiKeys === "object") ||
+      body.geminiKey !== undefined ||
+      body.deepaiKey !== undefined ||
+      body.chatgptKey !== undefined ||
+      body.deepseekKey !== undefined ||
+      body.perplexityKey !== undefined ||
+      body.duckaiKey !== undefined ||
+      body.claudeKey !== undefined
+    );
 
-    const saved = await saveUserApiKeys(req.user.userId, incoming);
-    res.json({ success: true, apiKeys: saved, message: "Your API keys have been saved to your account." });
+    let savedKeys = null;
+    if (hasApiKeyUpdate) {
+      const incomingKeys = body.apiKeys && typeof body.apiKeys === "object" ? { ...body.apiKeys } : {};
+      if (body.geminiKey !== undefined) incomingKeys.gemini = body.geminiKey;
+      if (body.deepaiKey !== undefined) incomingKeys.deepai = body.deepaiKey;
+      if (body.chatgptKey !== undefined) incomingKeys.chatgpt = body.chatgptKey;
+      if (body.deepseekKey !== undefined) incomingKeys.deepseek = body.deepseekKey;
+      if (body.perplexityKey !== undefined) incomingKeys.perplexity = body.perplexityKey;
+      if (body.duckaiKey !== undefined) incomingKeys.duckai = body.duckaiKey;
+      if (body.claudeKey !== undefined) incomingKeys.claude = body.claudeKey;
+      savedKeys = await saveUserApiKeys(req.user.userId, incomingKeys);
+    } else {
+      savedKeys = await getUserApiKeys(req.user.userId);
+    }
+
+    const hasTemplateUpdate = Boolean(
+      (body.templateSettings && typeof body.templateSettings === "object") ||
+      body.role !== undefined ||
+      body.experience !== undefined ||
+      body.techStack !== undefined ||
+      body.companyName !== undefined ||
+      body.keyDetails !== undefined ||
+      body.customTemplate !== undefined ||
+      body.interviewMode !== undefined
+    );
+
+    let savedTemplate = null;
+    if (hasTemplateUpdate) {
+      const incomingTpl = body.templateSettings && typeof body.templateSettings === "object"
+        ? { ...body.templateSettings }
+        : {};
+      if (body.role !== undefined) incomingTpl.role = body.role;
+      if (body.experience !== undefined) incomingTpl.experience = body.experience;
+      if (body.techStack !== undefined) incomingTpl.techStack = body.techStack;
+      if (body.companyName !== undefined) incomingTpl.companyName = body.companyName;
+      if (body.keyDetails !== undefined) incomingTpl.keyDetails = body.keyDetails;
+      if (body.customTemplate !== undefined) incomingTpl.customTemplate = body.customTemplate;
+      if (body.interviewMode !== undefined) incomingTpl.interviewMode = body.interviewMode;
+      savedTemplate = await saveUserTemplateSettings(req.user.userId, incomingTpl);
+    } else {
+      savedTemplate = await getUserTemplateSettings(req.user.userId);
+    }
+
+    res.json({
+      success: true,
+      apiKeys: savedKeys,
+      templateSettings: savedTemplate,
+      message: "Your settings and interview template have been saved to MongoDB."
+    });
   } catch (err) {
-    res.status(err.status || 500).json({ error: err.message || "Could not save API keys." });
+    res.status(err.status || 500).json({ error: err.message || "Could not save settings." });
   }
 });
 
@@ -1308,8 +1352,15 @@ app.post("/api/ocr-capture", requireAuth, async (req, res) => {
 });
 
 // Speech-to-Text status & fast PCM transcription fallback endpoint
-app.get("/api/speech/status", (req, res) => {
-  res.json(getSpeechEngineInfo(apiKeys.gemini));
+app.get("/api/speech/status", async (req, res) => {
+  try {
+    const token = extractTokenFromRequest(req);
+    const decoded = verifyTokenPayload(token);
+    const userKeys = decoded ? await getUserApiKeys(decoded.userId).catch(() => ({})) : {};
+    res.json(getSpeechEngineInfo(userKeys.gemini || ""));
+  } catch {
+    res.json(getSpeechEngineInfo(""));
+  }
 });
 
 app.post("/api/transcribe-pcm", requireAuth, express.raw({ type: "application/octet-stream", limit: "15mb" }), async (req, res) => {
@@ -1325,7 +1376,8 @@ app.post("/api/transcribe-pcm", requireAuth, express.raw({ type: "application/oc
       return res.status(400).json({ ok: false, error: "Empty audio buffer." });
     }
 
-    const result = await transcribePcm16(pcmBuffer, apiKeys.gemini);
+    const userKeys = await getUserApiKeys(req.user.userId).catch(() => ({}));
+    const result = await transcribePcm16(pcmBuffer, userKeys.gemini || "");
     pcmBuffer = null;
     return res.json(result);
   } catch (err) {
@@ -1341,11 +1393,24 @@ app.post("/api/transcribe-pcm", requireAuth, express.raw({ type: "application/oc
 // REAL-TIME STREAMING CHAT ENDPOINT (SSE) — Authenticated + Per-User Chat Persistence
 app.post("/api/chat/stream", requireAuth, async (req, res) => {
   const rawQuestion = String(req.body?.message || "").trim();
+  const savedTpl = await getUserTemplateSettings(req.user.userId).catch(() => ({}));
+  const reqProfile = req.body?.interviewProfile && typeof req.body.interviewProfile === "object" ? req.body.interviewProfile : {};
+  const mergedProfile = {
+    role: reqProfile.role ?? savedTpl.role ?? "",
+    experience: reqProfile.experience ?? savedTpl.experience ?? "",
+    techStack: reqProfile.techStack ?? savedTpl.techStack ?? "",
+    companyName: reqProfile.companyName ?? savedTpl.companyName ?? "",
+    keyDetails: reqProfile.keyDetails ?? savedTpl.keyDetails ?? ""
+  };
+  const useInterviewMode = req.body?.interviewMode !== undefined
+    ? req.body.interviewMode !== false
+    : savedTpl.interviewMode !== false;
   const question = buildFinalPrompt(rawQuestion, {
-    interviewMode: req.body?.interviewMode !== false,
-    customTemplate: req.body?.customTemplate
+    interviewMode: useInterviewMode,
+    customTemplate: req.body?.customTemplate !== undefined ? req.body.customTemplate : savedTpl.customTemplate,
+    profile: mergedProfile
   });
-  const providerKey = String(req.body?.provider || "gemini").toLowerCase();
+  const providerKey = String(req.body?.provider || "deepai").toLowerCase();
   const provider = PROVIDERS[providerKey];
   const directApiMode = req.body?.directApiMode === true;
   const requestedChatId = req.body?.chatId ? String(req.body.chatId) : null;
@@ -1534,11 +1599,24 @@ app.post("/api/chat/stream", requireAuth, async (req, res) => {
 // Non-streaming compatibility endpoint
 app.post("/api/chat", requireAuth, async (req, res) => {
   const rawQuestion = String(req.body?.message || "").trim();
+  const savedTpl = await getUserTemplateSettings(req.user.userId).catch(() => ({}));
+  const reqProfile = req.body?.interviewProfile && typeof req.body.interviewProfile === "object" ? req.body.interviewProfile : {};
+  const mergedProfile = {
+    role: reqProfile.role ?? savedTpl.role ?? "",
+    experience: reqProfile.experience ?? savedTpl.experience ?? "",
+    techStack: reqProfile.techStack ?? savedTpl.techStack ?? "",
+    companyName: reqProfile.companyName ?? savedTpl.companyName ?? "",
+    keyDetails: reqProfile.keyDetails ?? savedTpl.keyDetails ?? ""
+  };
+  const useInterviewMode = req.body?.interviewMode !== undefined
+    ? req.body.interviewMode !== false
+    : savedTpl.interviewMode !== false;
   const question = buildFinalPrompt(rawQuestion, {
-    interviewMode: req.body?.interviewMode !== false,
-    customTemplate: req.body?.customTemplate
+    interviewMode: useInterviewMode,
+    customTemplate: req.body?.customTemplate !== undefined ? req.body.customTemplate : savedTpl.customTemplate,
+    profile: mergedProfile
   });
-  const providerKey = String(req.body?.provider || "gemini").toLowerCase();
+  const providerKey = String(req.body?.provider || "deepai").toLowerCase();
   const provider = PROVIDERS[providerKey];
 
   if (!rawQuestion) return res.status(400).json({ error: "Enter a question." });
@@ -1691,7 +1769,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
 // Real-time system-audio transcription WebSocket (/ws/listen)
 const listenWss = new WebSocketServer({ server, path: "/ws/listen" });
 
-listenWss.on("connection", (clientWs, req) => {
+listenWss.on("connection", async (clientWs, req) => {
   // Verify user auth from query token or cookie
   let wsToken = null;
   try {
@@ -1707,7 +1785,8 @@ listenWss.on("connection", (clientWs, req) => {
     } catch {}
     return;
   }
-  const geminiKey = apiKeys.gemini || process.env.GEMINI_API_KEY || "";
+  const userKeys = await getUserApiKeys(wsUser.userId).catch(() => ({}));
+  const geminiKey = userKeys.gemini || "";
   let engineInfo = getSpeechEngineInfo(geminiKey);
   let liveSession = null;
   let localQueue = Promise.resolve();

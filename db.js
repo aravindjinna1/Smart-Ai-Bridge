@@ -134,9 +134,20 @@ function createLocalDbFallback() {
         persist();
         return { insertedId: _id };
       },
-      async updateOne(query, update) {
-        const doc = store[name].find((d) => matchesQuery(d, query));
-        if (!doc) return { matchedCount: 0, modifiedCount: 0 };
+      async updateOne(query, update, options = {}) {
+        let doc = store[name].find((d) => matchesQuery(d, query));
+        if (!doc) {
+          if (!options.upsert) return { matchedCount: 0, modifiedCount: 0 };
+          doc = {
+            _id: new ObjectId().toHexString(),
+            ...query,
+            ...(update.$setOnInsert || {}),
+            ...(update.$set || {})
+          };
+          store[name].push(doc);
+          persist();
+          return { matchedCount: 0, modifiedCount: 0, upsertedCount: 1, upsertedId: doc._id };
+        }
         if (update.$set) Object.assign(doc, update.$set);
         if (update.$push) {
           for (const [k, val] of Object.entries(update.$push)) {
@@ -195,18 +206,20 @@ async function connectToDatabase() {
   connectPromise = (async () => {
     try {
       const mongoClient = new MongoClient(uri, {
-        serverSelectionTimeoutMS: 4500,
-        connectTimeoutMS: 4500
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000
       });
       await mongoClient.connect();
       const db = mongoClient.db(DEFAULT_DB_NAME);
+      await db.command({ ping: 1 });
 
       await Promise.all([
         db.collection("users").createIndex({ email: 1 }, { unique: true }),
         db.collection("password_resets").createIndex({ tokenHash: 1 }, { unique: true }),
         db.collection("password_resets").createIndex({ userId: 1 }),
         db.collection("password_resets").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
-        db.collection("chats").createIndex({ userId: 1, updatedAt: -1 })
+        db.collection("chats").createIndex({ userId: 1, updatedAt: -1 }),
+        db.collection("templates").createIndex({ userId: 1 }, { unique: true })
       ]);
 
       client = mongoClient;
@@ -219,8 +232,8 @@ async function connectToDatabase() {
       const shortErr = (err?.message || String(err)).split("\n")[0];
       lastAtlasError = shortErr;
       dbMode = "local-fallback";
-      console.warn(
-        `⚠️ MongoDB Atlas connection rejected (${shortErr}). Make sure this server IP is allowed in MongoDB Atlas -> Network Access (0.0.0.0/0). Using local persistent store fallback for now.`
+      console.log(
+        `MongoDB Atlas unreachable from current server IP (${shortErr}). Using local persistent store (${LOCAL_FALLBACK_FILE}).`
       );
       dbInstance = createLocalDbFallback();
       return dbInstance;
@@ -236,7 +249,8 @@ async function getCollections() {
     db,
     users: db.collection("users"),
     passwordResets: db.collection("password_resets"),
-    chats: db.collection("chats")
+    chats: db.collection("chats"),
+    templates: db.collection("templates")
   };
 }
 

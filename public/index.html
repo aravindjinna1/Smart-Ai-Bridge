@@ -1230,8 +1230,82 @@
       margin-bottom: 8px;
     }
 
+    .profile-section-box {
+      padding: 14px;
+      border-radius: 10px;
+      background: #0b1224;
+      border: 1px solid #243454;
+      margin-bottom: 14px;
+    }
+
+    .profile-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .profile-section-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: #dbeafe;
+    }
+
+    .profile-fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .profile-field-full {
+      grid-column: 1 / -1;
+    }
+
+    .drawer-profile-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 11px;
+      border-radius: 8px;
+      background: #0d1529;
+      border: 1px solid #1f2e4d;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .drawer-profile-summary-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .drawer-profile-edit-btn {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid #2d4066;
+      color: #93c5fd;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .drawer-profile-edit-btn:hover {
+      background: #172544;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
     @media (max-width: 560px) {
-      .modal-keys-grid {
+      .modal-keys-grid,
+      .profile-fields-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -2077,6 +2151,10 @@
             </div>
             <input type="checkbox" id="interviewModeToggle" checked />
           </label>
+          <div class="drawer-profile-meta" id="drawerProfileMeta">
+            <span class="drawer-profile-summary-text" id="drawerProfileSummary">Not personalized yet (Role, Skills, Company)</span>
+            <button type="button" class="drawer-profile-edit-btn" id="drawerPersonalizeBtn">Personalize</button>
+          </div>
           <label class="menu-toggle-row" for="directApiToggle" title="Off = Browser Bridge. On = Direct API Mode using your own API keys.">
             <div class="menu-toggle-info">
               <span class="menu-toggle-title">Direct API</span>
@@ -2141,8 +2219,37 @@
   <!-- Settings / API Keys & Interview Template Modal -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal">
-      <h2>Interview Template &amp; API Settings</h2>
-      <p>Customize your interview prompt template or save your personal API keys for any AI tool (stored in your account database — we never use central developer keys).</p>
+      <h2>Settings &amp; Interview Template</h2>
+      <p>Personalize Interview Mode for your target role, skills, and company, customize the prompt template, or save your personal API keys (all stored per user in MongoDB).</p>
+
+      <div class="profile-section-box">
+        <div class="profile-section-header">
+          <span class="profile-section-title">Personalize for Your Interview</span>
+          <button type="button" id="clearProfileBtn" class="fb-btn" style="padding:2px 8px;font-size:11px;">Clear Fields</button>
+        </div>
+        <div class="profile-fields-grid">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="profileRoleInput">Target Role</label>
+            <input type="text" id="profileRoleInput" placeholder="e.g., Full Stack MERN Developer" autocomplete="off" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="profileExperienceInput">Experience</label>
+            <input type="text" id="profileExperienceInput" placeholder="e.g., 3 years / Fresher" autocomplete="off" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="profileCompanyInput">Company Name</label>
+            <input type="text" id="profileCompanyInput" placeholder="e.g., Razorpay, Infosys" autocomplete="off" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="profileTechStackInput">Tech Stack / Skills</label>
+            <input type="text" id="profileTechStackInput" placeholder="e.g., MongoDB, Express, React, Node.js" autocomplete="off" />
+          </div>
+          <div class="form-group profile-field-full" style="margin-bottom:0;">
+            <label for="profileKeyDetailsInput">Other Key Details (Projects, Focus Areas, Tone)</label>
+            <textarea id="profileKeyDetailsInput" rows="3" style="min-height:72px;" placeholder="e.g., Built multi-tenant SaaS e-commerce checkout, emphasize scalability, keep answers concise for live speech"></textarea>
+          </div>
+        </div>
+      </div>
 
       <div class="form-group">
         <label for="interviewTemplateInput">
@@ -2839,7 +2946,15 @@
     const closeSettingsBtn = document.querySelector("#closeSettingsBtn");
     const saveSettingsBtn = document.querySelector("#saveSettingsBtn");
     const resetTemplateBtn = document.querySelector("#resetTemplateBtn");
+    const clearProfileBtn = document.querySelector("#clearProfileBtn");
     const interviewTemplateInput = document.querySelector("#interviewTemplateInput");
+    const profileRoleInput = document.querySelector("#profileRoleInput");
+    const profileExperienceInput = document.querySelector("#profileExperienceInput");
+    const profileTechStackInput = document.querySelector("#profileTechStackInput");
+    const profileCompanyInput = document.querySelector("#profileCompanyInput");
+    const profileKeyDetailsInput = document.querySelector("#profileKeyDetailsInput");
+    const drawerProfileSummary = document.querySelector("#drawerProfileSummary");
+    const drawerPersonalizeBtn = document.querySelector("#drawerPersonalizeBtn");
     const directApiKeysPanel = document.querySelector("#directApiKeysPanel");
     const directApiWarning = document.querySelector("#directApiWarning");
     const saveDrawerKeysBtn = document.querySelector("#saveDrawerKeysBtn");
@@ -2891,15 +3006,54 @@
       "If the question is a Multiple-Choice Question (MCQ) or non-technical HR question, answer naturally using clear headings without forcing code."
     ].join("\n");
 
-    const storedInterview = localStorage.getItem("ai_bridge_interview_mode");
-    let interviewMode = storedInterview === null ? true : storedInterview === "true";
+    let interviewProfile = {
+      role: "",
+      experience: "",
+      techStack: "",
+      companyName: "",
+      keyDetails: ""
+    };
+    let interviewMode = true;
     interviewModeToggle.checked = interviewMode;
 
-    let customTemplate = localStorage.getItem("ai_bridge_interview_template") || "";
-    interviewTemplateInput.value = customTemplate || defaultInterviewTemplate;
+    let customTemplate = "";
+    interviewTemplateInput.value = defaultInterviewTemplate;
 
     let directApiMode = false;
     directApiToggle.checked = false;
+
+    function updateDrawerProfileSummary() {
+      if (!drawerProfileSummary) return;
+      const parts = [];
+      if (interviewProfile.role) parts.push(interviewProfile.role);
+      if (interviewProfile.experience) parts.push(interviewProfile.experience);
+      if (interviewProfile.companyName) parts.push(`@ ${interviewProfile.companyName}`);
+      if (!parts.length && interviewProfile.techStack) parts.push(interviewProfile.techStack);
+      if (parts.length > 0) {
+        drawerProfileSummary.textContent = `Tailored: ${parts.join(" · ")}`;
+        drawerProfileSummary.title = [
+          interviewProfile.role && `Role: ${interviewProfile.role}`,
+          interviewProfile.experience && `Experience: ${interviewProfile.experience}`,
+          interviewProfile.companyName && `Company: ${interviewProfile.companyName}`,
+          interviewProfile.techStack && `Skills: ${interviewProfile.techStack}`,
+          interviewProfile.keyDetails && `Details: ${interviewProfile.keyDetails}`
+        ].filter(Boolean).join("\n");
+      } else {
+        drawerProfileSummary.textContent = "Not personalized yet (Role, Skills, Company)";
+        drawerProfileSummary.title = "Set Role, Experience, Tech Stack, Company Name & Key Details";
+      }
+    }
+
+    function syncTemplateSettingsUi() {
+      if (profileRoleInput) profileRoleInput.value = interviewProfile.role || "";
+      if (profileExperienceInput) profileExperienceInput.value = interviewProfile.experience || "";
+      if (profileTechStackInput) profileTechStackInput.value = interviewProfile.techStack || "";
+      if (profileCompanyInput) profileCompanyInput.value = interviewProfile.companyName || "";
+      if (profileKeyDetailsInput) profileKeyDetailsInput.value = interviewProfile.keyDetails || "";
+      interviewTemplateInput.value = customTemplate || defaultInterviewTemplate;
+      interviewModeToggle.checked = interviewMode;
+      updateDrawerProfileSummary();
+    }
 
     function resetUserApiKeysUi() {
       for (const p of API_KEY_PROVIDERS) {
@@ -2907,6 +3061,10 @@
         if (drawerKeyInputs[p]) drawerKeyInputs[p].value = "";
         if (modalKeyInputs[p]) modalKeyInputs[p].value = "";
       }
+      interviewProfile = { role: "", experience: "", techStack: "", companyName: "", keyDetails: "" };
+      customTemplate = "";
+      interviewMode = true;
+      syncTemplateSettingsUi();
       directApiMode = false;
       directApiToggle.checked = false;
       drawerKeysFeedback.textContent = "";
@@ -2974,20 +3132,59 @@
       }
     }
 
-    async function persistUserApiKeys(keysObject) {
+    function collectTemplateSettingsFromModal() {
+      const enteredTpl = interviewTemplateInput.value.trim();
+      const tplToSave = (!enteredTpl || enteredTpl === defaultInterviewTemplate.trim()) ? "" : enteredTpl;
+      return {
+        role: (profileRoleInput?.value || "").trim(),
+        experience: (profileExperienceInput?.value || "").trim(),
+        techStack: (profileTechStackInput?.value || "").trim(),
+        companyName: (profileCompanyInput?.value || "").trim(),
+        keyDetails: (profileKeyDetailsInput?.value || "").trim(),
+        customTemplate: tplToSave,
+        interviewMode
+      };
+    }
+
+    function applyServerTemplateSettings(tpl) {
+      if (!tpl || typeof tpl !== "object") return;
+      interviewProfile = {
+        role: String(tpl.role || "").trim(),
+        experience: String(tpl.experience || "").trim(),
+        techStack: String(tpl.techStack || "").trim(),
+        companyName: String(tpl.companyName || "").trim(),
+        keyDetails: String(tpl.keyDetails || "").trim()
+      };
+      customTemplate = String(tpl.customTemplate || "").trim();
+      interviewMode = tpl.interviewMode !== false;
+      syncTemplateSettingsUi();
+    }
+
+    async function persistAccountSettings({ apiKeys = null, templateSettings = null } = {}) {
+      const payload = {};
+      if (apiKeys) payload.apiKeys = apiKeys;
+      if (templateSettings) payload.templateSettings = templateSettings;
       const res = await authFetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKeys: keysObject })
+        body: JSON.stringify(payload)
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not save API keys.");
+      if (!res.ok) throw new Error(data.error || "Could not save settings.");
       if (data.apiKeys) {
         for (const p of API_KEY_PROVIDERS) {
           userApiKeys[p] = String(data.apiKeys[p] || "").trim();
         }
       }
+      if (data.templateSettings) {
+        applyServerTemplateSettings(data.templateSettings);
+      }
       syncKeyInputsFromState();
+      return data;
+    }
+
+    async function persistUserApiKeys(keysObject) {
+      await persistAccountSettings({ apiKeys: keysObject });
       return userApiKeys;
     }
 
@@ -3003,9 +3200,11 @@
           }
           if (data.defaultInterviewTemplate) {
             defaultInterviewTemplate = data.defaultInterviewTemplate;
-            if (!customTemplate) {
-              interviewTemplateInput.value = defaultInterviewTemplate;
-            }
+          }
+          if (data.templateSettings && typeof data.templateSettings === "object") {
+            applyServerTemplateSettings(data.templateSettings);
+          } else {
+            syncTemplateSettingsUi();
           }
           configuredBrowser = data.configuredBrowser || "";
           if (!directApiMode && configuredBrowser) {
@@ -3017,12 +3216,14 @@
       } catch {}
     }
 
-    interviewModeToggle.addEventListener("change", () => {
+    interviewModeToggle.addEventListener("change", async () => {
       interviewMode = interviewModeToggle.checked;
-      localStorage.setItem("ai_bridge_interview_mode", String(interviewMode));
       status.textContent = interviewMode
         ? "Interview Mode ON — answers follow the 5-step interview structure."
         : "Interview Mode OFF — sending prompts directly.";
+      try {
+        await persistAccountSettings({ templateSettings: { interviewMode } });
+      } catch {}
     });
 
     directApiToggle.addEventListener("change", () => {
@@ -3076,28 +3277,37 @@
       }
     });
 
-    openSettingsBtn.addEventListener("click", () => {
+    function openSettingsModal(focusProfile = false) {
       setRightMenuOpen(false);
       syncKeyInputsFromState();
-      interviewTemplateInput.value = customTemplate || defaultInterviewTemplate;
+      syncTemplateSettingsUi();
       settingsModal.classList.add("active");
-    });
+      if (focusProfile && profileRoleInput) {
+        setTimeout(() => profileRoleInput.focus(), 40);
+      }
+    }
+
+    openSettingsBtn.addEventListener("click", () => openSettingsModal(false));
+    drawerPersonalizeBtn?.addEventListener("click", () => openSettingsModal(true));
     closeSettingsBtn.addEventListener("click", () => settingsModal.classList.remove("active"));
     resetTemplateBtn.addEventListener("click", () => {
       interviewTemplateInput.value = defaultInterviewTemplate;
     });
+    clearProfileBtn?.addEventListener("click", () => {
+      if (profileRoleInput) profileRoleInput.value = "";
+      if (profileExperienceInput) profileExperienceInput.value = "";
+      if (profileTechStackInput) profileTechStackInput.value = "";
+      if (profileCompanyInput) profileCompanyInput.value = "";
+      if (profileKeyDetailsInput) profileKeyDetailsInput.value = "";
+    });
     saveSettingsBtn.addEventListener("click", async () => {
-      const enteredTpl = interviewTemplateInput.value.trim();
-      if (!enteredTpl || enteredTpl === defaultInterviewTemplate.trim()) {
-        customTemplate = "";
-        localStorage.removeItem("ai_bridge_interview_template");
-      } else {
-        customTemplate = enteredTpl;
-        localStorage.setItem("ai_bridge_interview_template", customTemplate);
-      }
-
+      saveSettingsBtn.disabled = true;
+      saveSettingsBtn.textContent = "Saving...";
       try {
-        await persistUserApiKeys(collectKeysFromModal());
+        await persistAccountSettings({
+          apiKeys: collectKeysFromModal(),
+          templateSettings: collectTemplateSettingsFromModal()
+        });
         const configuredCallable = getConfiguredProviders(userApiKeys).filter((p) => p !== "duckai");
         if (directApiMode && !getActiveKey() && configuredCallable.length > 0) {
           selectProviderUiOnly(configuredCallable[0]);
@@ -3105,9 +3315,12 @@
         settingsModal.classList.remove("active");
         renderDirectApiState();
         updateBadge();
-        status.textContent = "Settings & API keys saved to your account.";
+        status.textContent = "Settings, interview profile & API keys saved to MongoDB.";
       } catch (err) {
         status.textContent = `⚠️ ${err.message}`;
+      } finally {
+        saveSettingsBtn.disabled = false;
+        saveSettingsBtn.textContent = "Save Settings";
       }
     });
 
@@ -4206,6 +4419,7 @@
             directApiMode,
             interviewMode,
             customTemplate,
+            interviewProfile,
             chatId: activeChatId,
             apiKey: directApiMode ? getActiveKey() : ""
           }),
